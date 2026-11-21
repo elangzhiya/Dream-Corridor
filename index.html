@@ -76,15 +76,14 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .resrow:hover { border-color:var(--blue); box-shadow:0 2px 8px rgba(42,127,170,0.12); }
 .resrow.dim { opacity:0.5; }
 .resrow .rline { display:flex; align-items:center; gap:6px; position:relative; z-index:1; }
-.resrow .ricon { font-size:12px; font-weight:bold; width:24px; height:24px; flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; background:var(--blue-light); color:var(--blue); border-radius:6px; }
-.resrow[data-k="_troops"] .ricon,.resrow[data-k="_heroes"] .ricon { background:var(--purple-light); color:var(--purple); }
-.resrow .rname { font-size:12px; color:var(--text-secondary); flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.resrow .rval { font-size:15px; font-weight:bold; color:var(--text); min-width:44px; text-align:right; font-variant-numeric:tabular-nums; display:inline-block; }
+.resrow .ricon { width:11px; height:11px; flex:0 0 11px; border-radius:3px; box-shadow:inset 0 0 0 1px rgba(255,255,255,.55),0 0 0 1px rgba(20,45,75,.08); }
+.resrow .rname { font-size:12px; color:var(--text-secondary); flex:1 1 auto; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.resrow .rval { font-size:15px; font-weight:bold; color:var(--text); flex:0 0 auto; white-space:nowrap; text-align:right; font-variant-numeric:tabular-nums; display:inline-block; }
 @keyframes numUp { 0%{color:var(--green);transform:translateY(-2px)} 100%{color:var(--text);transform:none} }
 @keyframes numDown { 0%{color:var(--red);transform:translateY(2px)} 100%{color:var(--text);transform:none} }
 .resrow .rval.numup { animation:numUp .6s ease-out; }
 .resrow .rval.numdown { animation:numDown .6s ease-out; }
-.resrow .rrate { font-size:11px; color:var(--green); min-width:52px; text-align:right; font-variant-numeric:tabular-nums; }
+.resrow .rrate { font-size:11px; color:var(--green); min-width:48px; flex:0 0 auto; white-space:nowrap; text-align:right; font-variant-numeric:tabular-nums; }
 .resrow .rrate.neg { color:var(--red); }
 .resrow .rrate.zero { color:var(--text-muted); }
 
@@ -179,10 +178,16 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 @keyframes builtFlash { 0%{ box-shadow:0 0 0 0 rgba(74,143,95,0.55); background:var(--green-light); } 60%{ box-shadow:0 0 0 6px rgba(74,143,95,0); } 100%{ box-shadow:0 0 0 0 rgba(74,143,95,0); } }
 .build-card.flash { animation:builtFlash .6s ease-out; }
 .build-card.wait { border-color:#e1e5e9; background:var(--panel); }
-.build-card.ready { border-color:#7fa98c; background:#eaf5ea; }
-.build-card.ready:hover { border-color:#6d9a79; box-shadow:0 4px 14px rgba(74,143,95,.18); }
-.build-card.built { border-color:#cfd9e3; background:#f7f9fb; }
-.build-card.built:hover { border-color:#b0c4d8; box-shadow:var(--shadow-hover); }
+/* 可建未建=蓝系（点此建造）；已建=绿系；等待=灰白；锁定=虚线 —— 四态一眼可分 */
+.build-card.ready { border-color:#6a9dc4; background:#eaf3fa; }
+.build-card.ready:hover { border-color:#2a7faa; box-shadow:0 4px 14px rgba(42,127,170,.18); }
+.build-card.ready:after { opacity:1; background:#6a9dc4; }
+/* 已建：实心绿边 + 绿底 + 建筑区淡绿，和未建的灰白卡一眼可分 */
+.build-card.built { border-color:#5d9f6f; background:#e6f3ea; box-shadow:0 1px 4px rgba(74,143,95,.13), inset 0 0 0 1px rgba(255,255,255,.7); }
+.build-card.built:hover { border-color:#4a8f5f; box-shadow:0 4px 14px rgba(74,143,95,.2); }
+.build-card.built .bart { background:radial-gradient(ellipse at 50% 28%,#f4fbf6 0%,#e2f0e7 78%); border-color:#cbe3d2; }
+.build-card.built:before { background-image:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0)); opacity:1; }
+.build-card.built:after { opacity:1; height:4px; background:#5d9f6f; }
 .build-card.locked-card { opacity:0.6; border-style:dashed; }
 .build-card.glory-card { border-color:#e3dac6; background:#fffdf8; }
 .build-card.fused-card { border-color:#dfe2ee; }
@@ -245,7 +250,7 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .hpbar-fill.mid { background:var(--yellow); }
 .eqgrid { display:flex; gap:3px; margin-top:5px; }
 /* 装备槽：只用颜色显示品质，悬停看详情 */
-.eq { width:18px; height:18px; border-radius:4px; border:1px solid; box-sizing:border-box; display:inline-block; cursor:help; transition:transform .1s; }
+.eq { width:18px; height:18px; border-radius:4px; border:1px solid; box-sizing:border-box; display:inline-block; cursor:default; transition:transform .1s; }
 .eq:hover { transform:translateY(-2px); }
 .eq.q0 { background:#f6f7f9; border-color:#c9cdd4; }                       /* 白 */
 .eq.q1 { background:#57b87c; border-color:#3a9960; }                       /* 绿 */
@@ -746,7 +751,9 @@ BUILDINGS.forEach(b=>{ G.B[b.id]={count:0,lv:1}; });
 RESEARCH.forEach(r=>{ G.R[r.id]={done:false,prog:0}; });
 
 // ---------- 存档 ----------
+let _resetting = false;
 function saveGame() {
+  if(_resetting) return; // 清档流程中禁止任何回写（含 beforeunload / idle 回调）
   try {
     const data = JSON.stringify({ G,lastSave:Date.now(),v:7,scale:3 });
     localStorage.setItem(SAVE_KEY,data);
@@ -803,7 +810,11 @@ function offlineEff() {
 }
 function fmtDur(s){ const h=Math.floor(s/3600),m=Math.floor(s%3600/60); return (h?h+"时":"")+(m?m+"分":"")+Math.floor(s%60)+"秒"; }
 function hardReset(){
-  showModal("清空存档","<div class='mtext'>将删除全部进度（建筑/资源/士兵/研究），且不可恢复。荣誉墙与记事也会清空。\n\n确定要清档吗？</div>",[{t:"取消",fn:closeModal},{t:"确认清档",cls:"primary",fn:()=>{ localStorage.removeItem(SAVE_KEY); location.reload(); }}]);
+  showModal("清空存档","<div class='mtext'>将删除全部进度（建筑/资源/士兵/研究），且不可恢复。荣誉墙与记事也会清空。\n\n确定要清档吗？</div>",[{t:"取消",fn:closeModal},{t:"确认清档",cls:"primary",fn:()=>{
+    _resetting = true; // 先阻断 beforeunload/idle 的自动回写
+    try{ localStorage.removeItem(SAVE_KEY); localStorage.removeItem(CHEAT.key); }catch(e){}
+    location.reload();
+  }}]);
 }
 
 // ---------- 工具 ----------
@@ -950,7 +961,7 @@ function showHelp(){
   "【建造】无槽位限制，点击即完成。约束 = 资源指数上浮 + 科技纪元 + 故土收复。\n"+
   "【升级】建筑不再单独升级，也不显示等级。研究对应的工艺科技后，建筑会换上新名字，之后新建的同类型建筑也沿用该名字。\n"+
   "【纪元】农耕→铁工→电气→融合→核能，每纪元解锁新建筑/新兵种。\n"+
-  "【士兵】两套：①数字编制——按数量成批招募，无名字无等级，战死会减员，进荣誉墙（每10人信念+1/s 永久）；招募上限由帐篷营地决定：每座营地容纳 10 人，营地升级后 +50%，需建营地才能招兵；②英雄——只有「招募英雄」一种，不分职业，登记无上限，有名字/等级/经验/血量，造价×3，永不战死（重伤只疗养），自带8装备槽。\n"+
+  "【士兵】两套：①数字编制——按数量成批招募，无名字无等级，战死会减员，进荣誉墙（每10人信念+1/s 永久）；招募上限由帐篷营地决定：每座营地容纳 10 人，营地升级后 +50%，需建营地才能招兵；②英雄——只有「招募英雄」一种，不分职业，登记无上限，有名字/等级/经验/血量，造价×3，重伤只疗养，自带8装备槽。\n"+
   "【信念】异世界的补给：产出有限，士兵、英雄、每座建筑都会持续消耗信念来维持；保持正收益才能养得起大军。\n"+
   "【装备】武器/头盔/护甲/战靴/护手/披风/护符/指环 8 槽，5 档品级以颜色区分（战力×1/1.6/2.5/4/6.5）。英雄巡逻与出征自动打怪，掉落品级越好越靠深处，自动换上更优装备。\n"+
   "【科研】在研究页开展研究，耗时分钟~小时级；融合链素材靠战斗缴获。\n"+
@@ -1203,7 +1214,7 @@ function buildB(bid) {
   if(b.kind==="core"&& st.count>0){ showToast("核心建筑唯一","error"); return; }
   const cost = getCost(b);
   if(!canAfford(cost)){ showToast("资源不足","error"); return; }
-  const starve = starvingByBuild(b);
+  const starve = CHEAT.on ? null : starvingByBuild(b); // 作弊模式不受产量赤字限制
   if(starve){ showToast(RES[starve].n+"产量不足，无法建造","error"); return; }
   payCost(cost);
   st.count++;
@@ -1674,6 +1685,8 @@ function startResInterp(){
   }
   requestAnimationFrame(frame);
 }
+const RES_COLOR = { belief:"#b8862b",build:"#8a95a3",food:"#5a9d6b",iron:"#7d8794",seed:"#7fae5c",crystal:"#5a86b8",steel:"#6c7c8c",alloy:"#486f95",chem:"#9a8a4b",power:"#c9a227",ammo:"#a9713f",concrete:"#98a0a8",plastic:"#6b8fb5",optics:"#5ba0a8",chip:"#7a6bb0",carbon:"#5c6470",magnet:"#8872ac",nuclear:"#b06a3a",glassF:"#4fa6b8",polyF:"#9a72b0",superF:"#c0963f",relics:"#9a7a5c",tissue:"#a86a78" };
+function resColor(k){ return RES_COLOR[k] || "#8a95a3"; }
 function renderResBar() {
   const rate = G._lastRate || computeRates(false);
   const shown = RES_ORDER.filter(k=>{
@@ -1688,13 +1701,13 @@ function renderResBar() {
       const r = RES[k],rt = rate[k]||0;
       const neg = rt<0,zero = rt===0;
       return '<div class="resrow'+((G.res[k]||0)===0&&zero?' dim':'')+'" data-k="'+k+'">'+
-        '<div class="rline"><span class="ricon">'+r.i+'</span><span class="rname">'+r.n+'</span>'+
+        '<div class="rline"><span class="ricon"style="background:'+resColor(k)+'"></span><span class="rname">'+r.n+'</span>'+
         '<span class="rval">'+fmtNum(G.res[k]||0)+'</span>'+
         '<span class="rrate'+(neg?' neg':zero?' zero':'')+'">'+fmtRate(rt)+'</span></div></div>';
     }).join('');
     html += '<div class="resgroup team">队伍</div>';
-    html += '<div class="resrow" data-k="_troops"><div class="rline"><span class="ricon">兵</span><span class="rname">士兵</span><span class="rval" data-v="troops">'+troopCount()+'/'+troopCap()+'</span></div></div>';
-    html += '<div class="resrow" data-k="_heroes"><div class="rline"><span class="ricon">英</span><span class="rname">英雄</span><span class="rval" data-v="heroes">'+G.soldiers.length+'</span></div></div>';
+    html += '<div class="resrow" data-k="_troops"><div class="rline"><span class="ricon"style="background:var(--purple)"></span><span class="rname">士兵</span><span class="rval" data-v="troops">'+troopCount()+'/'+troopCap()+'</span></div></div>';
+    html += '<div class="resrow" data-k="_heroes"><div class="rline"><span class="ricon"style="background:var(--gold)"></span><span class="rname">英雄</span><span class="rval" data-v="heroes">'+G.soldiers.length+'</span></div></div>';
     bar.innerHTML = html;
     for(const k in _resNodes) delete _resNodes[k];
     shown.forEach(k=>{
@@ -1917,27 +1930,26 @@ function renderRoster() {
   if(troopCount()===0) html += '<div class="empty-hint">士兵是数字编制，成批招募、战死会减员。先建帐篷营地，再招募一批守住营地。</div>';
 
   // ===== 英雄：只有「招募英雄」，不区分职业；无上限、8装备、5品级、不死 =====
-  html += '<div class="sect-title">英雄（'+G.soldiers.length+' 位 · 永不战死，重伤疗养）</div>';
+  html += '<div class="sect-title">英雄（'+G.soldiers.length+' 位）</div>';
   html += '<div class="hero-grid">';
   html += '<div class="hero-card h-fuse hero-recruit"><div class="hero-banner"></div><div class="hero-body">'+
     '<div class="hero-rsig">+</div><div class="rn">招募英雄</div>'+
-    '<div class="rd">有名字、会成长、带 8 件装备。永不战死，重伤只疗养。</div>'+
+    '<div class="rd">有名字、会成长、带 8 件装备。重伤只疗养。</div>'+
     '<div class="rm">造价 ×3 · '+costStr(heroHireCost())+' · 无上限</div>'+
     '<button class="btn-small" data-act="hero">招募英雄</button></div></div>';
   html += '</div>';
   const sorted = [...G.soldiers].sort((a,b)=>(b.lv-a.lv)||(soldierPower(b)-soldierPower(a)));
-  if(sorted.length===0) html += '<div class="empty-hint">还没有英雄。英雄不会死，是队伍的核心。</div>';
+  if(sorted.length===0) html += '<div class="empty-hint">还没有英雄。英雄是队伍的核心。</div>';
   html += '<div class="hero-grid">';
   sorted.forEach(s=>{
     const stateTxt = { idle:"营地巡逻",patrol:"巡逻·"+(s.land>=0?LANDS[s.land].name:""),expedition:"出征中",healing:"疗养中"}[s.state];
     const hpc = s.hp>60?"":s.hp>30?"mid":"low";
     const tier = s.lv>=12?"mixed":s.lv>=8?"fuse":s.lv>=5?"unlock":"prod";
-    const tierN = { prod:"新兵",unlock:"老练",fuse:"传奇",mixed:"传说" }[tier];
     const gear = (s.equip||[]).map(e=>e?'<span class="eq '+e.cls+'" title="'+e.name.replace(/^[白绿蓝紫金]·/,'')+' 战力+'+e.power+'"></span>':'<span class="eq qx" title="空槽"></span>').join('');
     html += '<div class="hero-card h-'+tier+'">'+
       '<div class="hero-banner"></div><div class="hero-body">'+
         '<div class="hero-top"><span class="hero-sigil">'+s.name.charAt(0)+'</span>'+
-          '<span class="hero-id"><span class="hero-name">'+s.name+'</span><span class="hero-sub">'+tierN+' · 永不战死</span></span>'+
+          '<span class="hero-id"><span class="hero-name">'+s.name+'</span></span>'+
           '<span class="hero-lv">LV<b>'+s.lv+'</b></span></div>'+
         '<div class="hero-stats">'+
           '<div class="hero-stat"><div class="v">'+Math.round(soldierPower(s))+'</div><div class="k">战力</div></div>'+

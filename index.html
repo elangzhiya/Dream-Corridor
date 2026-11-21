@@ -679,6 +679,24 @@ const BUILDINGS = [
   { id:"reactor",era:5,kind:"basic",n:"核反应堆",i:"核",effect:"壤晶1/s → 核燃料1/s· 电力 +36/s",cost:{belief:600,alloy:150,magnet:60},conv:{in:{crystal:1},out:{nuclear:1,power:36}},req:{res:"fission"},glory:60 },{ id:"fuelfab",era:5,kind:"func",n:"燃料棒车间",i:"燃",effect:"核燃料产率 ×2",cost:{belief:400,alloy:100,chip:30},glory:30 },{ id:"gmatrix",era:5,kind:"core",n:"荣光矩阵",i:"矩阵",effect:"唯一· 荣光值获取 ×1.5· 信念 +6/s",cost:{belief:800,magnet:60,chip:30,nuclear:20},req:{res:"matrix"},glory:100,onBuilt:"matrixOn",lore:{tag:"glory",t:"荣光矩阵",x:"矩阵亮起的那一刻，荣光值像潮水一样涨。守夜人说，大地的心跳声变清晰了——它记得我们。"} },{ id:"gatehub",era:5,kind:"core",n:"门廊枢纽",i:"门",effect:"唯一· 换门远征集结（推门的必要设施）",cost:{belief:1000,alloy:100,magnet:60,nuclear:50},glory:80,onBuilt:"hubOn"},{ id:"beacon",era:5,kind:"core",n:"灰壤之芽·信标",i:"标",effect:"核心唯一· 粮食产量+15%· 荣光+200· 建成后+6荣光/s",cost:{belief:3000,build:2500,steel:500,crystal:50},glory:200,req:{land:5},hidden:true,onBuilt:"beaconOn"}
 ];
 
+// ---------- 高阶建筑维护：高阶吃低阶资源，形成产能出口 ----------
+// T1 基石免维护；T2 起按纪元逐级加重，吃的是最底层的粮食/建材/灰铁/钢铁。
+// 随建筑等级小幅上浮（Lv3 ×1.5、Lv5 ×2），远小于产能涨幅，避免把玩家压垮。
+const BUILD_MAINT = {
+  1: {},
+  2: { food:2, build:2 },
+  3: { food:5, build:5, iron:3 },
+  4: { food:9, build:9, iron:6, steel:4 },
+  5: { food:14, build:14, iron:10, steel:7 }
+};
+function maintFactor(lv){ return 1 + 0.25*((lv||1)-1); }
+function maintStr(b){
+  const m = BUILD_MAINT[b.era];
+  if(!m || b.era<2) return "";
+  const f = maintFactor(G.B[b.id]&&G.B[b.id].lv);
+  return Object.entries(m).map(([k,v])=>RES[k].n+"×"+Math.round(v*f)+"/s").join(" · ");
+}
+
 // 建筑升级后不再显示 Lv，而是换成新的名字（研究触发升级）
 const BUILD_TIER_NAMES = {
   tent:{3:"加固营地",5:"军事营地"},
@@ -1018,11 +1036,16 @@ function troopArmyPower(){
   return p;
 }
 // 普通士兵战死：按比率从各兵种扣减，记荣誉墙
-function killTroops(where, ratio){
+function killTroops(where, ratio, minOne){
   const ts = Object.keys(G.troops||{}).filter(t=>G.troops[t]>0);
   if(!ts.length) return 0;
   const total = troopCount();
-  const dead = Math.min(total, Math.max(1, Math.round(total*ratio)));
+  const exact = total*ratio;
+  // minOne=false 时按概率取整，供巡逻小额常态战损使用，避免少量兵被强制清零
+  const dead = minOne===false
+    ? Math.floor(exact) + (Math.random() < (exact-Math.floor(exact)) ? 1 : 0)
+    : Math.min(total, Math.max(1, Math.round(exact)));
+  if(dead<=0) return 0;
   let left = dead;
   while(left>0){
     const alive = ts.filter(t=>G.troops[t]>0);
@@ -1190,6 +1213,29 @@ function computeRates(forOffline, assumeFull) {
   ["food","build","steel","alloy","chem","concrete","plastic","optics","chip","carbon","magnet","glassF","polyF","superF","nuclear","seed","iron","crystal","ammo"].forEach(k=>{ rate[k]*=globalMul; });
   // 信标：粮食产量 +15%
   if((G.B.beacon?G.B.beacon.count:0)>0) rate.food *= 1.15;
+
+  // 高阶建筑维护：T2+ 每座按纪元持续吃低阶资源，形成产能出口。
+  // 死锁防护（关键）——维护以"维护前的净产出"为基数，最多吃掉 80%：
+  //   1) cut ≤ 净产出×0.8，维护后该资源仍 ≥ 净产出×0.2 > 0，资源永远在增长（只是变慢）；
+  //   2) 净产出 ≤ 0 时维护免除，绝不加剧赤字；
+  //   3) 高阶建筑越多、维护需求越大，越容易吃满上限，积累越慢——这就是「需求随产能增长」的权衡。
+  // 效果：产能不再无意义暴涨，但玩家始终攒得下资源，建造/招募不卡死。
+  const maintDemand = {};
+  BUILDINGS.forEach(b=>{
+    if(b.era<2) return;
+    const st = B[b.id], n = st?st.count:0;
+    if(n<=0) return;
+    const m = BUILD_MAINT[b.era]; if(!m) return;
+    const f = maintFactor(st.lv);
+    Object.entries(m).forEach(([k,v])=>{ maintDemand[k]=(maintDemand[k]||0)+v*f*n; });
+  });
+  Object.entries(maintDemand).forEach(([k,need])=>{
+    if(need<=0) return;
+    const net = rate[k]||0;
+    if(net<=0) return;                          // 入不敷出时维护免除
+    rate[k] = net - Math.min(need, net*0.8);    // 至多吃 80%，留 ≥20% 净沉淀
+  });
+
   // 统一放大到整数体系：每秒增减均为整数
   RES_ORDER.forEach(k=>{ rate[k] = Math.round(rate[k]*S); });
   return rate;
@@ -1483,6 +1529,13 @@ function patrolTick() {
           if(s.hp<30){ enterHeal(s); }
         }
       });
+      // 胜利也有常态战损：巡逻本就是持续消耗兵力的出口，越深伤亡越重（英雄只受伤、普通士兵会战死）
+      if(troopShare>0){
+        let vloss = 0.02 + 0.012*i;                       // 深处巡逻伤亡更高
+        if(hasRes("silicate")) vloss *= 0.8;              // 硅酸盐学：工事减伤
+        if(G.B.sentry && G.B.sentry.lv>=5) vloss *= 0.5;  // 碉堡化：减半
+        killTroops(where+"巡逻中", vloss, false);
+      }
       const lead = squad[0] || {name:"守军"};
       addLog(""+lead.name+"小队在"+where+"击溃灰体，缴获 "+Object.entries(loot).map(([k,v])=>RES[k].n+"×"+v).join("·"),"good");
       // 战报流（低频写残页，避免刷屏）
@@ -1841,6 +1894,7 @@ function renderBuild() {
       // 只展示当前效果，不展示 Lv3/Lv5 未来效果
       const effect = b.effect;
       const chainHtml = (function(){ const cs=chainState(b.id); if(!cs) return ''; return '<div class="bd-line muted'+(cs.n>0?' fed':'')+'">链· '+(cs.n>0?'✓ ':'○ ')+cs.name+(cs.bonus>0?' +'+Math.round(cs.bonus*100)+'%':' 缺供')+'</div>'; })();
+      const maintLine = maintStr(b) ? '<div class="bd-line muted">维护 '+maintStr(b)+'</div>' : '';
       const cardCls = "build-card k-"+b.kind+(built?" built":"")+(ready?" ready":canBuild?" wait":"")+(unlocked?"":" locked-card")+(b.kind==="fused"?" fused-card":"")+(canBuild?" clickable":"");
       const cardAttrs = canBuild ? ' data-bid="'+b.id+'" data-act="build" data-id="'+b.id+'"' : ' data-bid="'+b.id+'"';
       const dname = buildingName(b, s.lv);
@@ -1849,6 +1903,7 @@ function renderBuild() {
         '<div class="bd-line muted">'+badgeTxt+'</div>'+
         '<div class="bd-line">'+effect+'</div>'+
         chainHtml+
+        (built?maintLine:'')+
         (built?'':'<div class="bd-line muted">建造：'+costStr(cost)+'</div>')+
         '<div class="bd-foot">'+(unlocked?(canBuild?(ready?'点击建造':'可建造'):'核心唯一'):'前置未完成 · ……')+'</div>';
       const qtyTag = built && !isCore ? '<span class="bqty">×'+s.count+'</span>' : '';

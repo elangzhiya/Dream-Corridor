@@ -24,6 +24,9 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .era-badge.t3 { background:#e4f2ea; color:#2e7d56; }
 .era-badge.t4 { background:#e6f0f7; color:var(--purple); }
 .era-badge.t5 { background:#f5ede2; color:#9a6a3a; }
+@keyframes eraSweep { 0%{ background-position:-120% 0; } 100%{ background-position:220% 0; } }
+.era-badge.sweep { background-image:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.85) 50%,transparent 70%); background-size:220% 100%; animation:eraSweep .9s ease-out 1; }
+
 
 .glory-wrap { flex:1; min-width:200px; max-width:420px; }
 .glory-text { font-size:12px; color:var(--text-secondary); display:flex; justify-content:space-between; margin-bottom:2px; }
@@ -60,7 +63,11 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .resrow .rline { display:flex; align-items:center; gap:6px; position:relative; z-index:1; }
 .resrow .ricon { font-size:12px; font-weight:bold; width:18px; height:18px; flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; background:var(--blue-light); color:var(--blue); border-radius:4px; }
 .resrow .rname { font-size:12px; color:var(--text-secondary); flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.resrow .rval { font-size:15px; font-weight:bold; color:var(--text); min-width:44px; text-align:right; font-variant-numeric:tabular-nums; }
+.resrow .rval { font-size:15px; font-weight:bold; color:var(--text); min-width:44px; text-align:right; font-variant-numeric:tabular-nums; } display:inline-block;
+@keyframes numUp { 0%{color:var(--green);transform:translateY(-2px)} 100%{color:var(--text);transform:none} }
+@keyframes numDown { 0%{color:var(--red);transform:translateY(2px)} 100%{color:var(--text);transform:none} }
+.resrow .rval.numup { animation:numUp .6s ease-out; }
+.resrow .rval.numdown { animation:numDown .6s ease-out; }
 .resrow .rrate { font-size:11px; color:var(--green); min-width:52px; text-align:right; font-variant-numeric:tabular-nums; }
 .resrow .rrate.neg { color:var(--red); }
 .resrow .rrate.zero { color:var(--text-muted); }
@@ -71,6 +78,11 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 
 /* 中栏主标签 */
 .maintabs { display:flex; gap:3px; border-bottom:2px solid var(--border); margin-bottom:10px; flex-shrink:0; }
+/* 视觉质感：可交互卡片 hover 微抬升 + 按钮按下回弹 */
+.build-card:hover,.unit-card:hover,.land-card:hover,.soldier-card:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(20,45,75,0.10); }
+.unit-card,.land-card,.soldier-card { transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease; }
+.btn-small:active,.gbtn:active,.push-door-btn:active { transform:scale(.94); }
+.maintab:active,.side-tab:active { transform:translateY(1px); }
 .maintab { flex:1; padding:7px 4px; font-size:13px; font-weight:bold; color:var(--text-muted); background:none; border:none; border-bottom:2px solid transparent; margin-bottom:-2px; cursor:pointer; transition:all .15s ease; }
 .maintab:hover:not(.active) { color:var(--text-secondary); background:var(--card); }
 .maintab.active { color:var(--blue); border-bottom-color:var(--blue); }
@@ -138,6 +150,7 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .build-card.glory-card { border-color:#e3dac6; background:#fffdf8; }
 .build-card.fused-card { border-color:#dfe2ee; }
 .bbody { padding:7px 10px 8px; }
+.new-tag { font-size:10px; color:#fff; background:var(--blue); border-radius:3px; padding:0 4px; margin-left:3px; }
 .brow { display:flex; align-items:center; gap:5px; min-width:0; }
 .brow-act { margin-top:5px; }
 .bicon { font-size:13px; font-weight:bold; line-height:1; flex-shrink:0; width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; background:#f0f3f6; color:#5a6a7a; border-radius:5px; border:1px solid #e6ebf0; }
@@ -717,14 +730,14 @@ function renderScrollList() {
   const el = document.getElementById("scrollList");
   // 只显示故事类条目（兼容旧存档里残留的战报/建造等）
   const pages = G.scrollPages.filter(p=>p.tag==="story"||p.tag==="lore");
-  if(pages.length===0){ el.innerHTML='<div class="scroll-empty">故事会随着复兴的推进逐渐浮现...</div>'; return; }
-  el.innerHTML = pages.map(p =>
+  if(pages.length===0){ setHTML("scrollList", '<div class="scroll-empty">故事会随着复兴的推进逐渐浮现...</div>'); return; }
+  setHTML("scrollList", pages.map(p =>
     '<div class="scroll-item'+(p.tag==="story"?"story-item":"")+'"><div class="scroll-item-header">'+
     '<span class="scroll-item-tag tag-'+p.tag+'">'+({build:' 建造',combat:' 战报',lore:' 记事',glory:' 启示',discover:' 发现',story:' 故事'})[p.tag]+'</span>'+
     '<span class="scroll-item-time">'+p.time+'</span></div>'+
     '<div class="scroll-item-title">'+(p.title||p.t||'')+'</div>'+
     '<div class="scroll-item-text">'+(p.text||p.x||'')+'</div></div>'
-  ).join('');
+  ).join(''));
 }
 function loreDone(key){ if(G.loreShown[key]) return; G.loreShown[key]=true; const l=LORE8.find(x=>x.key===key); if(l){ addScrollPage("lore",l.t,l.x); } }
 function showLore(b){
@@ -1364,15 +1377,28 @@ function tick() {
   checkStory();
   if(G.time%10===0) syncUnitUnlocks();
   if(G.time%2===0) renderAll();
-  if(G.time%5===0) saveGame();
+  if(G.time%5===0){
+    if(window.requestIdleCallback) requestIdleCallback(()=>saveGame(), {timeout:1500});
+    else saveGame();
+  }
 }
 
+// ---------- 渲染缓存：内容未变则跳过 innerHTML 写入 ----------
+// 消除每2秒全量重建导致的动画重播 / hover 丢失 / 血条跳变。
+let _lastEra = -1;
+const _htmlCache = {};
+function setHTML(id, html){
+  if(_htmlCache[id] === html) return false;
+  _htmlCache[id] = html;
+  document.getElementById(id).innerHTML = html;
+  return true;
+}
 // ---------- 渲染 ----------
 function renderWorldTabs() {
-  document.getElementById("worldTabs").innerHTML = WorldTabs.map(w=>{
+  setHTML("worldTabs", WorldTabs.map(w=>{
     const cls = w.id===0 ? "world-tab active":"world-tab locked";
-    return '<div class="'+cls+'"onclick="switchWorld('+w.id+')">第'+(w.id+1)+'门：'+w.name+'</div>';
-  }).join('');
+    return '<div class="'+cls+'" data-act="world" data-i="'+w.id+'">第'+(w.id+1)+'门：'+w.name+'</div>';
+  }).join(''));
 }
 function switchWorld(id){
   if(id!==0){ showToast("完成灰壤门的复兴后开启","error"); return; }
@@ -1390,32 +1416,109 @@ function costStr(cost,small){
 }
 function fmtRate(v){ if(!v) return "+0/s"; return (v>0?"+":"-")+fmtNum(Math.abs(v))+"/s"; }
 
+// ---------- 资源栏：结构缓存 + 数字平滑插值 ----------
+// 结构（显示哪些资源）不变时不重建 DOM，只局部更新文本/速率/进度条；
+// 数字由 rAF 每帧向真实值逼近，消除"每2秒跳一格"的顿挫感。
+const _resSig = { v:"" };
+const _resNodes = {};   // k -> {row, val, rate, grow}
+const _disp = {};       // k -> 当前显示值（插值用）
+let _interpOn = false;
+let _pulseT = {};        // 脉冲节流
+
+function pulseNum(el, dir){
+  if(!el) return;
+  el.classList.remove("numup","numdown");
+  void el.offsetWidth;
+  el.classList.add(dir>0?"numup":"numdown");
+}
+function startResInterp(){
+  if(_interpOn) return;
+  _interpOn = true;
+  function frame(){
+    for(const k in _resNodes){
+      if(!RES[k]) continue;                 // 跳过 士兵/英雄 等伪行
+      const node = _resNodes[k];
+      if(!node || !node.val) continue;
+      const target = G.res[k]||0;
+      let d = _disp[k];
+      if(d===undefined){ _disp[k]=d=target; node.val.textContent=fmtNum(d); continue; }
+      const gap = target - d;
+      if(Math.abs(gap) > 0.4){
+        const big = Math.abs(gap) > Math.max(12, target*0.08); // 大额变动才脉冲
+        d += gap*0.18;
+        _disp[k]=d;
+        node.val.textContent = fmtNum(d);
+        if(big && Date.now()-(_pulseT[k]||0)>700){ _pulseT[k]=Date.now(); pulseNum(node.val, gap); }
+      } else if(d!==target){
+        _disp[k]=target;
+        node.val.textContent = fmtNum(target);
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
 function renderResBar() {
   const rate = G._lastRate || computeRates(false);
   const shown = RES_ORDER.filter(k=>{
     if(BASE_RES.includes(k)) return true;
     return (G.res[k]||0)>0 || Math.abs(rate[k]||0)>0 || ["iron","seed","crystal","steel","power"].includes(k)&&(G.era>=2||G.lands.some((l,i)=>l.liberated&&LANDS[i].landRate&&LANDS[i].landRate[k]));
   });
-  let html = shown.map(k=>{
-    const r = RES[k],rt = rate[k]||0;
-    const neg = rt<0,zero = rt===0;
-    // 进度条速度反映真实速率：+4/s 约 1s 一圈，+1/s 约 4s 一圈
-    const dur = Math.max(0.5, Math.min(9, 4/Math.max(0.25,Math.abs(rt)))).toFixed(1);
-    return '<div class="resrow'+((G.res[k]||0)===0&&zero?' dim':'')+'">'+
-      '<div class="rline"><span class="ricon">'+r.i+'</span><span class="rname">'+r.n+'</span>'+
-      '<span class="rval">'+fmtNum(G.res[k]||0)+'</span>'+
-      '<span class="rrate'+(neg?' neg':zero?' zero':'')+'">'+fmtRate(rt)+'</span></div>'+
-      (zero?'':'<i class="grow'+(neg?' neg':' run')+'" style="--dur:'+dur+'s"></i>')+'</div>';
-  }).join('');
-  html += '<div class="resrow"><div class="rline"><span class="ricon">兵</span><span class="rname">士兵</span><span class="rval">'+troopCount()+'</span></div></div>';
-  html += '<div class="resrow"><div class="rline"><span class="ricon">英</span><span class="rname">英雄</span><span class="rval">'+G.soldiers.length+'/'+HERO_MAX+'</span></div></div>';
-  document.getElementById("resBar").innerHTML = html;
+  const sig = shown.join("|");
+  const bar = document.getElementById("resBar");
+  if(sig !== _resSig.v){
+    _resSig.v = sig;
+    let html = shown.map(k=>{
+      const r = RES[k],rt = rate[k]||0;
+      const neg = rt<0,zero = rt===0;
+      // 进度条速度反映真实速率：+4/s 约 1s 一圈，+1/s 约 4s 一圈
+      const dur = Math.max(0.5, Math.min(9, 4/Math.max(0.25,Math.abs(rt)))).toFixed(1);
+      return '<div class="resrow'+((G.res[k]||0)===0&&zero?' dim':'')+'" data-k="'+k+'">'+
+        '<div class="rline"><span class="ricon">'+r.i+'</span><span class="rname">'+r.n+'</span>'+
+        '<span class="rval">'+fmtNum(G.res[k]||0)+'</span>'+
+        '<span class="rrate'+(neg?' neg':zero?' zero':'')+'">'+fmtRate(rt)+'</span></div>'+
+        (zero?'':'<i class="grow'+(neg?' neg':' run')+'" style="--dur:'+dur+'s"></i>')+'</div>';
+    }).join('');
+    html += '<div class="resrow" data-k="_troops"><div class="rline"><span class="ricon">兵</span><span class="rname">士兵</span><span class="rval" data-v="troops">'+troopCount()+'</span></div></div>';
+    html += '<div class="resrow" data-k="_heroes"><div class="rline"><span class="ricon">英</span><span class="rname">英雄</span><span class="rval" data-v="heroes">'+G.soldiers.length+'/'+HERO_MAX+'</span></div></div>';
+    bar.innerHTML = html;
+    for(const k in _resNodes) delete _resNodes[k];
+    shown.forEach(k=>{
+      const row = bar.querySelector('.resrow[data-k="'+k+'"]');
+      if(!row) return;
+      _resNodes[k] = { row, val:row.querySelector(".rval"), rate:row.querySelector(".rrate"), grow:row.querySelector(".grow") };
+      if(_disp[k]===undefined) _disp[k]=G.res[k]||0;
+    });
+    _resNodes._troops = { val:bar.querySelector('[data-v="troops"]') };
+    _resNodes._heroes = { val:bar.querySelector('[data-v="heroes"]') };
+    startResInterp();
+  } else {
+    // 结构未变：只更新速率/进度条速度/dim，绝不重建（progress 动画得以连续播放）
+    shown.forEach(k=>{
+      const n = _resNodes[k]; if(!n) return;
+      const rt = rate[k]||0, neg=rt<0, zero=rt===0;
+      if(n.rate){
+        const txt = fmtRate(rt);
+        if(n.rate.textContent!==txt) n.rate.textContent = txt;
+        const cls = "rrate"+(neg?" neg":zero?" zero":"");
+        if(n.rate.className!==cls) n.rate.className = cls;
+      }
+      if(n.row) n.row.classList.toggle("dim",(G.res[k]||0)===0&&zero);
+      if(n.grow){
+        const dur = Math.max(0.5, Math.min(9, 4/Math.max(0.25,Math.abs(rt)))).toFixed(1);
+        const want = "--dur:"+dur+"s";
+        if(n.grow.getAttribute("style")!==want) n.grow.setAttribute("style",want);
+      }
+    });
+  }
+  if(_resNodes._troops && _resNodes._troops.val) _resNodes._troops.val.textContent = troopCount();
+  if(_resNodes._heroes && _resNodes._heroes.val) _resNodes._heroes.val.textContent = G.soldiers.length+"/"+HERO_MAX;
   document.getElementById("gloryVal").textContent = fmtNum(G.glory);
   document.getElementById("gloryRate").textContent = G.gloryIdle ? "+6/s" : ("目标 "+fmtNum(gloryThreshold()));
   document.getElementById("gloryBar").style.width = Math.min(100,G.glory/gloryThreshold()*100)+"%";
 }
-
 function renderBuild() {
+  if(!G._seenCard) G._seenCard = {};
   const st = id => G.B[id];
   let html = "";
   // 按建筑类别分组：核心 / 基础 / 功能 / 融合
@@ -1452,11 +1555,13 @@ function renderBuild() {
       const ready = canBuild ? canAfford(cost) : false;
       const lvtag = built ? '<span class="lvtag">Lv'+s.lv+'</span>' :"";
       const badge = isCore?'<span class="badge badge-core">核心唯一</span>':b.kind==="fused"?'<span class="badge badge-fused">融合</span>':b.kind==="func"?'<span class="badge badge-func">功能</span>':'<span class="badge badge-basic">基础</span>';
+      const newTag = (!built && e===G.era && vis[vis.length-1]===b && !G._seenCard[b.id]) ? '<span class="new-tag">新</span>' : "";
+      if(!built && e===G.era && vis[vis.length-1]===b) G._seenCard[b.id]=true;
       // 只展示当前效果，不展示 Lv3/Lv5 未来效果
       const effect = b.effect;
-      html += '<div class="build-card'+(built?" built":"")+(ready?" ready":canBuild?" wait":"")+(unlocked?"":" locked-card")+(b.kind==="fused"?" fused-card":"")+'" data-bid="'+b.id+'"'+(canBuild?' onclick="buildB(\''+b.id+'\')"':'')+'>'+
+      html += '<div class="build-card'+(built?" built":"")+(ready?" ready":canBuild?" wait":"")+(unlocked?"":" locked-card")+(b.kind==="fused"?" fused-card":"")+(canBuild?' clickable" data-bid="'+b.id+'" data-act="build" data-id="'+b.id+'" title="点击建造':'" data-bid="'+b.id+'"')+'>'+
         '<div class="bbody">'+
-        '<div class="brow"><span class="bicon'+(built?' anim-flame':'')+'">'+b.i+'</span><span class="bname">'+b.n+'</span>'+(built&&!isCore?'<span class="count-tag">×'+s.count+'</span>':'')+lvtag+badge+'</div>'+
+        '<div class="brow"><span class="bicon'+(built?' anim-flame':'')+'">'+b.i+'</span><span class="bname">'+b.n+'</span>'+(built&&!isCore?'<span class="count-tag">×'+s.count+'</span>':'')+lvtag+newTag+badge+'</div>'+
         '<div class="beffect">'+effect+'</div>'+
         (function(){ const cs=chainState(b.id); if(!cs) return ''; return '<div class="chain-line'+(cs.n>0?' fed':'')+'">链· '+(cs.n>0?'✓ ':'○ ')+cs.name+(cs.bonus>0?' +'+Math.round(cs.bonus*100)+'%':' 缺供')+'</div>'; })()+
         '<div class="brow brow-act"><span class="bcost">'+(built?"":("建:"+costStr(cost)))+'</span><span class="bact">'+(unlocked?'':'<span class="bstatus">……</span>')+'</span></div>'+
@@ -1466,7 +1571,7 @@ function renderBuild() {
   });
   }
   html += renderGloryLayer();
-  document.getElementById("buildArea").innerHTML = html;
+  setHTML("buildArea", html);
 }
 function renderGloryLayer() {
   const bs = G.B.beacon || {count:0,lv:1};
@@ -1482,7 +1587,7 @@ function renderGloryLayer() {
     if(doorOk) bBtn = '<span class="bstatus"style="color:var(--green)">已点亮 </span>';
     else {
       const can = canAfford(beacon.cost);
-      bBtn = '<button class="gbtn"onclick="buildB(\'beacon\')"'+(can?'':'disabled')+'>点亮信标</button>';
+      bBtn = '<button class="gbtn" data-act="beacon"'+(can?'':'disabled')+'>点亮信标</button>';
     }
     cards += '<div class="build-card glory-card'+(doorOk?" built":"")+'"><div class="bbody">'+
       '<div class="brow"><span class="bicon'+(doorOk?"anim-beacon":"")+'">标</span><span class="bname">灰壤之芽· 信标</span><span class="badge badge-core">核心唯一</span></div>'+
@@ -1495,7 +1600,7 @@ function renderGloryLayer() {
     cards += '<div class="build-card glory-card"><div class="bbody">'+
       '<div class="brow"><span class="bicon">门</span><span class="bname">推门· 走向第二扇门</span></div>'+
       '<div class="cond-list"style="color:var(--text-muted)">门就在那里。它自己知道你什么时候准备好了。</div>'+
-      '<div style="text-align:center"><button class="push-door-btn"id="pushBtn"onclick="pushDoor()"style="display:'+(c.all?"inline-block":"none")+'">推开这扇门 →</button></div>'+
+      '<div style="text-align:center"><button class="push-door-btn"id="pushBtn" data-act="door"style="display:'+(c.all?"inline-block":"none")+'">推开这扇门 →</button></div>'+
       '</div></div>';
   }
   return '<div class="era-divider glory-div"><span class="era-icon"></span><span class="era-name">荣光· 换门</span><div class="era-line"></div></div><div class="build-grid">'+cards+'</div>';
@@ -1538,7 +1643,7 @@ function renderRoster() {
     const u = UNITS[uid];
     if(!G.unitUnlocked[uid]) return;
     const cnt = G.troops[uid]||0;
-    const batchBtns = TROOP_BATCH.map(n=>'<button class="btn-small" data-recruit-troop="'+uid+'" onclick="recruitTroop(\''+uid+'\','+n+')">+'+n+'</button>').join('');
+    const batchBtns = TROOP_BATCH.map(n=>'<button class="btn-small" data-recruit-troop="'+uid+'" data-act="troop" data-id="'+uid+'" data-n="'+n+'">+'+n+'</button>').join('');
     html += '<div class="unit-card">'+
       '<h4 style="margin:0 0 2px;font-size:13px">'+u.n+' <span style="color:var(--text-muted);font-weight:normal">战力'+u.power+' · 在役 '+cnt+'</span></h4>'+
       '<div style="font-size:11px;color:var(--text-muted)">单价：'+costStr(u.cost)+'</div>'+
@@ -1558,7 +1663,7 @@ function renderRoster() {
     html += '<div class="unit-card" style="display:flex;justify-content:space-between;align-items:center">'+
       '<div><h4 style="margin:0 0 2px;font-size:13px">英雄·'+u.n+' <span style="color:var(--text-muted);font-weight:normal">战力'+u.power+'</span></h4>'+
       '<div style="font-size:11px;color:var(--text-muted)">'+costStr(c)+'</div></div>'+
-      '<button class="btn-small"'+(full?' disabled':'')+' data-recruit="'+uid+'" onclick="recruitUnit(\''+uid+'\')">'+(full?'已满':'招募')+'</button>'+
+      '<button class="btn-small"'+(full?' disabled':'')+' data-recruit="'+uid+'" data-act="hero" data-id="'+uid+'">'+(full?'已满':'招募')+'</button>'+
       '</div>';
   });
   const sorted = [...G.soldiers].sort((a,b)=>(b.lv-a.lv)||(soldierPower(b)-soldierPower(a)));
@@ -1582,10 +1687,10 @@ function renderRoster() {
   G.honorWall.forEach(h=>{
     html += '<div class="honor-item"><b>'+h.name+'</b>· '+h.type+(h.lv?' Lv'+h.lv:'')+'· 击杀'+h.kills+'· '+h.where+'</div>';
   });
-  el.innerHTML = html;
+  setHTML("rosterArea", html);
 }
 function renderLandsView() {
-  document.getElementById("landsArea").innerHTML = LANDS.map((L,i)=>{
+  setHTML("landsArea", LANDS.map((L,i)=>{
     const l = G.lands[i];
     const costStrL = costStr(L.cost);
     const rewardStrL = costStr(L.reward);
@@ -1594,7 +1699,7 @@ function renderLandsView() {
     let btns = "";
     if(!l.liberated){
       const readyN = G.soldiers.filter(s=>s.state==="idle"||s.state==="patrol").length + troopCount();
-      btns = '<button class="btn-small atk"'+(l.locked?' disabled':'')+' onclick="attackLand('+i+')">'+(l.locked?'尚未开放':'全军出征（'+readyN+'人可战）')+'</button>';
+      btns = '<button class="btn-small atk"'+(l.locked?' disabled':'')+' data-act="attack" data-i="'+i+'">'+(l.locked?'尚未开放':'全军出征（'+readyN+'人可战）')+'</button>';
     } else {
       btns = '<div style="font-size:11px;color:var(--text-secondary);margin-top:3px">巡逻队 '+pat+' 人 · 自动驻守</div>';
     }
@@ -1603,7 +1708,7 @@ function renderLandsView() {
       '<div style="font-size:11px;color:var(--text-secondary)">'+L.set+'</div>'+
       '<div style="font-size:11px;color:var(--text-muted);margin:2px 0">守军战力 '+L.power+(l.liberated&&rateStrL?' | 特产：'+rateStrL:'')+'</div>'+
       (l.liberated?'':'<div style="font-size:11px;color:var(--text-muted)">出征消耗：'+costStrL+' ｜ 缴获：'+rewardStrL+'</div>')+btns+'</div>';
-  }).join('');
+  }).join(''));
 }
 function nextResearch() {
   return RESEARCH.find(r=>{
@@ -1642,7 +1747,7 @@ function renderResearchView() {
     html += '<div class="rq-item"><div class="rq-name"> '+avail.n+' '+upTagFor(avail)+'<span style="float:right;font-size:11px;color:var(--text-muted)">'+Math.round(avail.t/60)+'分钟</span></div>'+
       '<div class="rq-desc">'+avail.d+'</div>'+
       '<div style="font-size:11px;color:var(--text-muted)">'+costStr(avail.cost)+'</div>'+
-      (can?'<button class="btn-small"onclick="startResearch(\''+avail.id+'\')"'+(afford?'':'disabled')+'>研究</button>':'<span class="bstatus">研究进行中</span>')+
+      (can?'<button class="btn-small" data-act="research" data-id="'+avail.id+'"'+(afford?'':'disabled')+'>研究</button>':'<span class="bstatus">研究进行中</span>')+
       '</div>';
   } else if(!G.queue.length) {
     html += '<div class="empty-hint">当前纪元的知识已全部掌握。推进纪元或建造融合研究院以解锁新研究。</div>';
@@ -1650,10 +1755,10 @@ function renderResearchView() {
   html += '<div class="sect-title">已完成研究</div>';
   const done = RESEARCH.filter(r=>hasRes(r.id));
   html += done.length ? done.map(r=>'<div class="res-card"style="font-size:12px"><b>'+r.n+'</b> '+upTagFor(r)+' <span style="color:var(--text-secondary)">'+r.d+'</span></div>').join('') :'<div class="empty-hint">尚无。</div>';
-  el.innerHTML = html;
+  setHTML("researchArea", html);
 }
 function renderLogStrip() {
-  document.getElementById("logArea").innerHTML = '<div class="log-box">'+G.log.map(l=>'<p class="'+l.c+'">'+l.t+'</p>').join('')+'</div>';
+  setHTML("logArea", '<div class="log-box">'+G.log.map(l=>'<p class="'+l.c+'">'+l.t+'</p>').join('')+'</div>');
 }
 function renderAllPanels() {
   renderRoster(); renderLandsView(); renderResearchView(); renderLogStrip();
@@ -1665,8 +1770,12 @@ function renderAll() {
   renderAllPanels();
   renderWorldTabs();
   const eb = document.getElementById("eraBadge");
-  eb.textContent = ERAS[G.era-1].n;
-  eb.className = "era-badge t"+G.era;
+  if(_lastEra!==G.era){
+    eb.textContent = ERAS[G.era-1].n;
+    eb.className = "era-badge t"+G.era+" sweep";
+    clearTimeout(eb._sw); eb._sw=setTimeout(()=>eb.classList.remove("sweep"),950);
+    _lastEra = G.era;
+  }
 }
 
 // ---------- 启动 ----------
@@ -1680,6 +1789,20 @@ function renderAll() {
     if(G.era>back) G.era = back;
     delete G.eraBeforeCheat;
   }
+  // 事件委托：动态面板用 data-act 分发，避免每处 innerHTML 重建都重新绑定
+  document.addEventListener("click", function(e){
+    const t = e.target.closest ? e.target.closest("[data-act]") : null;
+    if(!t || t.disabled) return;
+    const act = t.dataset.act;
+    if(act==="build") buildB(t.dataset.id);
+    else if(act==="beacon") buildB("beacon");
+    else if(act==="door") pushDoor();
+    else if(act==="world") switchWorld(+t.dataset.i);
+    else if(act==="troop") recruitTroop(t.dataset.id, +t.dataset.n);
+    else if(act==="hero") recruitUnit(t.dataset.id);
+    else if(act==="attack") attackLand(+t.dataset.i);
+    else if(act==="research") startResearch(t.dataset.id);
+  });
   CHEAT.badge(); CHEAT.listen();
   renderScrollList();
   renderAll();

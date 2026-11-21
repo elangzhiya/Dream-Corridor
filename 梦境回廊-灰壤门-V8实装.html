@@ -9,15 +9,25 @@
   --text-muted:#7f8c9a; --blue:#2a7faa; --blue-light:#e8f2f8;
   --green:#4a8f5f; --green-light:#eaf5ea; --yellow:#b8862b;
   --yellow-light:#faf6e8; --red:#d32f2f; --red-light:#fdecec;
-  --purple:#4a7fa5; --purple-light:#e8f2f8;
+  --purple:#7a5fb0; --purple-light:#f1ecfa;
   --gold:#b8862b; --gold-light:#faf6e8;
+  /* 统一节奏：圆角 3 档 / 间距 4 级 / 阴影 2 级 */
+  --r-sm:6px; --r-md:10px; --r-lg:14px;
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px;
   --shadow:0 1px 3px rgba(20,45,75,0.07);
+  --shadow-hover:0 4px 12px rgba(20,45,75,0.10);
 }
 * { box-sizing:border-box; margin:0; }
 body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","PingFang SC",sans-serif; font-size:15px; display:flex; flex-direction:column; height:100vh; overflow:hidden; }
 
-.header { background:var(--panel); border-bottom:1px solid var(--border); padding:8px 16px; display:flex; align-items:center; gap:14px; flex-shrink:0; box-shadow:var(--shadow); flex-wrap:wrap; }
-.game-title { font-size:19px; font-weight:bold; letter-spacing:2px; white-space:nowrap; }
+/* 顶栏四区：品牌 | 状态 | 世界门 | 操作，细竖线分隔 */
+.header { background:var(--panel); border-bottom:1px solid var(--border); padding:7px 16px; display:flex; align-items:center; gap:0; flex-shrink:0; box-shadow:var(--shadow); flex-wrap:wrap; }
+.hgroup { display:flex; align-items:center; gap:10px; padding:0 14px; min-height:30px; }
+.hgroup:first-child { padding-left:2px; }
+.hgroup + .hgroup { border-left:1px solid var(--border-light); }
+.hgroup.hbrand { flex-shrink:0; }
+.hgroup.hops { margin-left:auto; }
+.game-title { font-size:18px; font-weight:bold; letter-spacing:2px; white-space:nowrap; }
 .game-title span { color:var(--blue); }
 .era-badge { font-size:13px; padding:3px 10px; border-radius:4px; background:var(--blue-light); color:var(--blue); font-weight:bold; white-space:nowrap; }
 .era-badge.t2 { background:#e4eef5; color:#3a6d92; }
@@ -28,11 +38,11 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .era-badge.sweep { background-image:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.85) 50%,transparent 70%); background-size:220% 100%; animation:eraSweep .9s ease-out 1; }
 
 
-.glory-wrap { flex:1; min-width:200px; max-width:420px; }
-.glory-text { font-size:12px; color:var(--text-secondary); display:flex; justify-content:space-between; margin-bottom:2px; }
-.glory-text b { color:var(--gold); }
-.glory-bar-bg { height:6px; background:var(--border-light); border-radius:3px; overflow:hidden; }
-.glory-bar-fill { height:100%; background:linear-gradient(90deg,var(--gold),#e0b060); width:0%; transition:.5s; }
+.glory-wrap { display:flex; align-items:baseline; gap:6px; white-space:nowrap; }
+.glory-label { font-size:12px; color:var(--text-secondary); }
+.glory-wrap b { color:var(--gold); font-size:15px; font-variant-numeric:tabular-nums; }
+#gloryRate { font-size:11px; color:var(--gold); font-variant-numeric:tabular-nums; }
+.hver { font-size:12px; color:var(--text-muted); white-space:nowrap; }
 
 .hbtns { display:flex; gap:5px; }
 .hbtn { padding:3px 9px; font-size:12px; border:1px solid var(--border); border-radius:4px; background:var(--card); color:var(--text-secondary); cursor:pointer; }
@@ -45,7 +55,8 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .world-tabs { display:flex; gap:5px; }
 .world-tab { padding:4px 12px; border:1px solid var(--border); border-radius:4px; cursor:pointer; font-size:13px; background:var(--card); color:var(--text-secondary); }
 .world-tab.active { border-color:var(--blue); color:var(--blue); background:var(--blue-light); font-weight:bold; }
-.world-tab.locked { color:var(--text-muted); cursor:not-allowed; border-color:var(--border-light); background:var(--bg); filter:blur(1px); }
+.world-tab.locked { color:var(--text-muted); cursor:not-allowed; border-color:var(--border-light); background:var(--bg); opacity:0.6; }
+.world-tab.active { box-shadow:inset 0 -1px 0 var(--blue); }
 
 /* ===== 三栏主布局 ===== */
 .main { display:flex; flex:1; overflow:hidden; gap:0; }
@@ -56,12 +67,17 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .colhead .sub { font-size:11px; color:var(--text-muted); font-weight:normal; letter-spacing:0; }
 .reslist { flex:1; overflow-y:auto; padding:9px 9px; display:flex; flex-direction:column; gap:6px; }
 
-/* 资源卡（左栏紧凑竖排） */
-.resrow { position:relative; background:var(--card); border:1px solid var(--border); border-radius:7px; padding:7px 9px; overflow:hidden; box-shadow:var(--shadow); transition:border-color .2s,box-shadow .2s; }
+/* 资源栏：生产资源 / 队伍 两组，组间细线 */
+.resgroup { display:flex; align-items:center; gap:6px; margin:10px 2px 5px; font-size:11px; font-weight:bold; color:var(--text-muted); letter-spacing:1px; }
+.resgroup:first-child { margin-top:2px; }
+.resgroup::after { content:""; flex:1; height:1px; background:var(--border-light); }
+.resgroup.team { margin-top:14px; padding-top:10px; border-top:1px solid var(--border); }
+.resrow { position:relative; background:var(--card); border:1px solid var(--border); border-radius:var(--r-sm); padding:6px 9px; overflow:hidden; box-shadow:var(--shadow); transition:border-color .2s,box-shadow .2s; }
 .resrow:hover { border-color:var(--blue); box-shadow:0 2px 8px rgba(42,127,170,0.12); }
 .resrow.dim { opacity:0.5; }
 .resrow .rline { display:flex; align-items:center; gap:6px; position:relative; z-index:1; }
-.resrow .ricon { font-size:12px; font-weight:bold; width:18px; height:18px; flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; background:var(--blue-light); color:var(--blue); border-radius:4px; }
+.resrow .ricon { font-size:12px; font-weight:bold; width:24px; height:24px; flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; background:var(--blue-light); color:var(--blue); border-radius:6px; }
+.resrow[data-k="_troops"] .ricon,.resrow[data-k="_heroes"] .ricon { background:var(--purple-light); color:var(--purple); }
 .resrow .rname { font-size:12px; color:var(--text-secondary); flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .resrow .rval { font-size:15px; font-weight:bold; color:var(--text); min-width:44px; text-align:right; font-variant-numeric:tabular-nums; display:inline-block; }
 @keyframes numUp { 0%{color:var(--green);transform:translateY(-2px)} 100%{color:var(--text);transform:none} }
@@ -75,7 +91,7 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 /* 中栏主标签 */
 .maintabs { display:flex; gap:3px; border-bottom:2px solid var(--border); margin-bottom:10px; flex-shrink:0; }
 /* 视觉质感：可交互卡片 hover 微抬升 + 按钮按下回弹 */
-.build-card:hover,.unit-card:hover,.land-card:hover,.soldier-card:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(20,45,75,0.10); }
+.build-card:hover,.unit-card:hover,.land-card:hover,.soldier-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-hover); }
 .unit-card,.land-card,.soldier-card { transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease; }
 .btn-small:active,.gbtn:active,.push-door-btn:active { transform:scale(.94); }
 .maintab:active,.side-tab:active { transform:translateY(1px); }
@@ -125,7 +141,7 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .kind-head { display:flex; align-items:center; gap:7px; margin:2px 0 6px; font-size:12px; font-weight:bold; color:var(--text-secondary); letter-spacing:1px; }
 .kind-head::after { content:""; flex:1; height:1px; background:var(--border); }
 .kind-head .dot { width:7px; height:7px; border-radius:2px; flex-shrink:0; }
-.build-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(276px,1fr)); gap:10px; width:100%; }
+.build-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(276px,1fr)); gap:var(--sp-3); width:100%; }
 /* 建筑卡：小建筑造型——斜屋顶 + 立面剪影 + 铭牌 + 基座（参考 Epoch-Restart） */
 .build-card { --kc:#4d5c6b; background:var(--panel); border:1px solid #e1e5e9; border-radius:4px 4px 8px 8px; overflow:visible; transition:border-color .15s ease,background .15s ease,box-shadow .15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.04), inset 0 0 0 1px rgba(255,255,255,.7); position:relative; min-width:0; padding-top:8px; }
 .build-card:before { content:""; position:absolute; left:0; right:0; top:0; height:8px; background-color:#cfd9e3; background-image:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0)); clip-path:polygon(0 100%,7% 0,93% 0,100% 100%); opacity:.9; }
@@ -141,7 +157,7 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .build-card.glory-card:before { display:none; }
 .build-card.glory-card { padding-top:0; }
 /* 平时只显示建筑本身；详细信息悬停浮出 */
-.bface { display:flex; flex-direction:column; padding:8px 10px 10px; min-width:0; }
+.bface { display:flex; flex-direction:column; padding:var(--sp-3); min-width:0; }
 .bart { height:72px; border:1px solid #e8edf2; border-radius:5px 5px 2px 2px; background:radial-gradient(ellipse at 50% 28%,#fdfefe 0%,#f2f5f8 78%); box-shadow:inset 0 1px 3px rgba(30,60,90,.06); display:flex; align-items:flex-start; justify-content:center; padding-top:5px; position:relative; overflow:hidden; }
 .bart:after { content:""; position:absolute; left:8px; right:8px; bottom:3px; height:1px; background:#d6dfe7; }
 .bart svg { width:64px; height:47px; display:block; position:relative; z-index:1; transform:translateY(-3px); filter:drop-shadow(0 1px 1px rgba(45,70,95,.18)); }
@@ -156,7 +172,7 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .bd-line { font-size:12px; color:var(--text-secondary); line-height:1.45; margin-top:2px; }
 .bd-line.muted { color:var(--text-muted); font-size:11px; }
 .bd-foot { font-size:11px; color:var(--blue); margin-top:5px; padding-top:4px; border-top:1px solid var(--border-light); }
-.build-card:hover { border-color:#b0c4d8; background:#f5f7fa; }
+.build-card:hover { border-color:#b0c4d8; box-shadow:var(--shadow-hover), inset 0 0 0 1px rgba(255,255,255,.7); }
 .build-card.clickable { cursor:pointer; }
 /* 点击反馈：按下瞬间下压 + 建成闪光 */
 .build-card.clickable:active { transform:translateY(1px) scale(0.985); box-shadow:0 0 0 2px rgba(42,127,170,0.25); }
@@ -164,9 +180,9 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .build-card.flash { animation:builtFlash .6s ease-out; }
 .build-card.wait { border-color:#e1e5e9; background:var(--panel); }
 .build-card.ready { border-color:#7fa98c; background:#eaf5ea; }
-.build-card.ready:hover { border-color:#6d9a79; background:#e3f0e3; }
+.build-card.ready:hover { border-color:#6d9a79; box-shadow:0 4px 14px rgba(74,143,95,.18); }
 .build-card.built { border-color:#cfd9e3; background:#f7f9fb; }
-.build-card.built:hover { border-color:#b0c4d8; background:#eef3f7; }
+.build-card.built:hover { border-color:#b0c4d8; box-shadow:var(--shadow-hover); }
 .build-card.locked-card { opacity:0.6; border-style:dashed; }
 .build-card.glory-card { border-color:#e3dac6; background:#fffdf8; }
 .build-card.fused-card { border-color:#dfe2ee; }
@@ -251,10 +267,18 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .btn-small.grn { background:var(--green-light); color:var(--green); border-color:var(--green); }
 .btn-small.grn:hover:not(:disabled) { background:var(--green); color:#fff; }
 
-.log-box { font-size:12px; color:var(--text-secondary); line-height:1.6; }
-.log-box p { margin:2px 0; padding-bottom:2px; border-bottom:1px solid var(--border-light); }
-.log-box p.warn { color:var(--red); }
-.log-box p.good { color:var(--green); }
+/* 事件日志：左侧时间轴 + 类型圆点 */
+.log-timeline { position:relative; padding-left:14px; }
+.log-timeline::before { content:""; position:absolute; left:4px; top:6px; bottom:6px; width:1px; background:var(--border); }
+.log-entry { position:relative; font-size:12px; color:var(--text-secondary); line-height:1.55; padding:3px 0 7px; }
+.log-entry::before { content:""; position:absolute; left:-13px; top:8px; width:7px; height:7px; border-radius:50%; background:var(--border); border:2px solid var(--panel); box-sizing:content-box; }
+.log-entry.info::before { background:var(--blue); }
+.log-entry.good::before { background:var(--green); }
+.log-entry.warn::before { background:var(--red); }
+.log-entry.gold::before { background:var(--gold); }
+.log-entry.good .log-text { color:#3f7d55; }
+.log-entry.warn .log-text { color:var(--red); }
+.log-entry.gold .log-text { color:#9a6a3a; }
 
 .honor-item { background:var(--gold-light); border:1px solid #e0d0a8; border-radius:5px; padding:6px 8px; margin-bottom:5px; font-size:12px; color:#7a6a3a; }
 .honor-title { font-size:13px; font-weight:bold; color:var(--gold); margin:8px 0 5px; }
@@ -266,10 +290,10 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .sect-title { font-size:13px; font-weight:bold; color:var(--text-secondary); margin:8px 0 4px; border-left:3px solid var(--blue); padding-left:6px; }
 
 /* ===== 研究 / 士兵：按类型配色的窄卡片 ===== */
-.tile-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:7px; align-items:stretch; }
-.tile { --tile-c:var(--blue); --tile-bg:var(--blue-light); position:relative; min-width:0; background:var(--panel); border:1px solid var(--border); border-radius:7px; padding:8px 9px 8px 11px; box-shadow:var(--shadow); overflow:hidden; transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease; }
+.tile-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:var(--sp-3); align-items:stretch; }
+.tile { --tile-c:var(--blue); --tile-bg:var(--blue-light); position:relative; min-width:0; background:var(--panel); border:1px solid var(--border); border-radius:var(--r-md); padding:10px 11px; box-shadow:var(--shadow); overflow:hidden; transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease; }
 .tile:before { content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--tile-c); }
-.tile:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(20,45,75,.10); border-color:var(--tile-c); }
+.tile:hover { transform:translateY(-2px); box-shadow:var(--shadow-hover); border-color:var(--tile-c); }
 .tile.t-prod  { --tile-c:#4a8f5f; --tile-bg:#eaf5ea; }
 .tile.t-unlock{ --tile-c:#2a7faa; --tile-bg:#e8f2f8; }
 .tile.t-up    { --tile-c:#b8862b; --tile-bg:#faf6e8; }
@@ -310,9 +334,9 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 #viewRoster .tile-ic { border-radius:4px 4px 8px 4px; }
 #viewRoster .tile-foot { border-top:1px dashed var(--border); padding-top:5px; }
 /* —— 英雄卡：徽章式双层卡，品级配色 + 战力铭牌 + 装备栏 —— */
-.hero-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(236px,1fr)); gap:9px; }
-.hero-card { --hc:#2a7faa; --hc-bg:#e8f2f8; position:relative; min-width:0; border:1px solid #dfe6ed; border-radius:9px; background:var(--panel); box-shadow:var(--shadow); overflow:hidden; transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease; }
-.hero-card:hover { transform:translateY(-2px); box-shadow:0 5px 14px rgba(20,45,75,.12); border-color:var(--hc); }
+.hero-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(236px,1fr)); gap:var(--sp-3); }
+.hero-card { --hc:#2a7faa; --hc-bg:#e8f2f8; position:relative; min-width:0; border:1px solid #dfe6ed; border-radius:var(--r-md); background:var(--panel); box-shadow:var(--shadow); overflow:hidden; transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease; }
+.hero-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-hover); border-color:var(--hc); }
 .hero-card.h-prod   { --hc:#4a8f5f; --hc-bg:#eaf5ea; }
 .hero-card.h-unlock { --hc:#2a7faa; --hc-bg:#e8f2f8; }
 .hero-card.h-fuse   { --hc:#8b46b8; --hc-bg:#f6effa; }
@@ -367,6 +391,10 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .scroll-panel.expanded .scroll-bar-toggle { transform:rotate(180deg); }
 .scroll-panel.expanded .scroll-body { max-height:260px; padding:10px 20px 14px; }
 .scroll-body { background:var(--bg); border-top:1px solid var(--border-light); max-height:0; overflow:hidden; padding:0 20px; transition:.3s ease; }
+.scroll-tabs { display:flex; gap:4px; margin-bottom:8px; border-bottom:1px solid var(--border-light); }
+.scroll-tab { padding:4px 12px; font-size:12px; color:var(--text-muted); background:none; border:none; border-bottom:2px solid transparent; cursor:pointer; margin-bottom:-1px; transition:.15s; }
+.scroll-tab:hover:not(.active) { color:var(--text-secondary); }
+.scroll-tab.active { color:var(--purple); border-bottom-color:var(--purple); font-weight:bold; }
 .scroll-list { max-height:240px; overflow-y:auto; padding-right:6px; }
 .scroll-item { background:var(--panel); border:1px solid var(--border-light); border-left:3px solid var(--border); border-radius:5px; padding:8px 10px; margin-bottom:6px; animation:fadeInUp .35s ease; transition:border-color .2s ease,box-shadow .2s ease; }
 .scroll-item:hover { border-left-color:var(--purple); box-shadow:0 2px 8px rgba(0,0,0,0.08); }
@@ -421,14 +449,21 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 <body>
 
 <div class="header">
-  <div class="game-title">梦境<span>回廊</span> <span style="font-size:12px;color:var(--text-muted)">V8· 灰壤门</span></div>
-  <div class="era-badge"id="eraBadge">T1 农耕纪元</div>
-  <div class="glory-wrap"><div class="glory-text"><span>荣光 <b id="gloryVal">0</b></span><span id="gloryRate" style="color:var(--gold)"></span></div><div class="glory-bar-bg"><div class="glory-bar-fill"id="gloryBar"></div></div></div>
-  <div class="world-tabs"id="worldTabs"></div>
-  <span class="cheat-badge"id="cheatBadge"onclick="CHEAT.toggle()"title="点击关闭作弊模式">作弊模式</span>
-  <div class="hbtns">
-    <button class="hbtn"onclick="showHelp()"> 说明</button>
-    <button class="hbtn danger"onclick="hardReset()"> 清档</button>
+  <div class="hgroup hbrand">
+    <div class="game-title">梦境<span>回廊</span></div>
+    <span class="hver">V8· 灰壤门</span>
+  </div>
+  <div class="hgroup hstate">
+    <div class="era-badge"id="eraBadge">T1 农耕纪元</div>
+    <div class="glory-wrap"><span class="glory-label">荣光</span><b id="gloryVal">0</b><span id="gloryRate"></span></div>
+  </div>
+  <div class="hgroup hworld"><div class="world-tabs"id="worldTabs"></div></div>
+  <div class="hgroup hops">
+    <span class="cheat-badge"id="cheatBadge"onclick="CHEAT.toggle()"title="点击关闭作弊模式">作弊模式</span>
+    <div class="hbtns">
+      <button class="hbtn"onclick="showHelp()"> 说明</button>
+      <button class="hbtn danger"onclick="hardReset()"> 清档</button>
+    </div>
   </div>
 </div>
 
@@ -470,6 +505,10 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
     </div>
   </div>
   <div class="scroll-body"id="scrollBody">
+    <div class="scroll-tabs" id="scrollTabs">
+      <button class="scroll-tab active" data-act="scrolltab" data-tab="story">故事</button>
+      <button class="scroll-tab" data-act="scrolltab" data-tab="lore">世界观</button>
+    </div>
     <div class="scroll-list"id="scrollList">
       <div class="scroll-empty">记事会在远征中逐渐浮现...</div>
     </div>
@@ -868,11 +907,16 @@ function toggleScroll() {
   renderScrollList();
   adjustLeftPad();
 }
+let _scrollTab = "story";
 function renderScrollList() {
-  const el = document.getElementById("scrollList");
-  // 只显示故事类条目（兼容旧存档里残留的战报/建造等）
-  const pages = G.scrollPages.filter(p=>p.tag==="story"||p.tag==="lore");
-  if(pages.length===0){ setHTML("scrollList", '<div class="scroll-empty">故事会随着复兴的推进逐渐浮现...</div>'); return; }
+  // 按标签过滤：故事 / 世界观，兼容旧存档残留条目
+  const want = (_scrollTab==="lore") ? "lore" : "story";
+  const pages = G.scrollPages.filter(p=>p.tag===want);
+  document.querySelectorAll(".scroll-tab").forEach(b=>b.classList.toggle("active", b.dataset.tab===_scrollTab));
+  if(pages.length===0){
+    setHTML("scrollList", '<div class="scroll-empty">'+(want==="lore"?"世界观记事会随着探索逐渐浮现...":"故事会随着复兴的推进逐渐浮现...")+'</div>');
+    return;
+  }
   setHTML("scrollList", pages.map(p =>
     '<div class="scroll-item'+(p.tag==="story"?"story-item":"")+'"><div class="scroll-item-header">'+
     '<span class="scroll-item-tag tag-'+p.tag+'">'+({build:' 建造',combat:' 战报',lore:' 记事',glory:' 启示',discover:' 发现',story:' 故事'})[p.tag]+'</span>'+
@@ -1640,7 +1684,7 @@ function renderResBar() {
   const bar = document.getElementById("resBar");
   if(sig !== _resSig.v){
     _resSig.v = sig;
-    let html = shown.map(k=>{
+    let html = '<div class="resgroup">生产资源</div>' + shown.map(k=>{
       const r = RES[k],rt = rate[k]||0;
       const neg = rt<0,zero = rt===0;
       return '<div class="resrow'+((G.res[k]||0)===0&&zero?' dim':'')+'" data-k="'+k+'">'+
@@ -1648,6 +1692,7 @@ function renderResBar() {
         '<span class="rval">'+fmtNum(G.res[k]||0)+'</span>'+
         '<span class="rrate'+(neg?' neg':zero?' zero':'')+'">'+fmtRate(rt)+'</span></div></div>';
     }).join('');
+    html += '<div class="resgroup team">队伍</div>';
     html += '<div class="resrow" data-k="_troops"><div class="rline"><span class="ricon">兵</span><span class="rname">士兵</span><span class="rval" data-v="troops">'+troopCount()+'/'+troopCap()+'</span></div></div>';
     html += '<div class="resrow" data-k="_heroes"><div class="rline"><span class="ricon">英</span><span class="rname">英雄</span><span class="rval" data-v="heroes">'+G.soldiers.length+'</span></div></div>';
     bar.innerHTML = html;
@@ -1679,7 +1724,6 @@ function renderResBar() {
   if(_resNodes._heroes && _resNodes._heroes.val) _resNodes._heroes.val.textContent = ""+G.soldiers.length;
   document.getElementById("gloryVal").textContent = fmtNum(G.glory);
   document.getElementById("gloryRate").textContent = G.gloryIdle ? "+6/s" : ("目标 "+fmtNum(gloryThreshold()));
-  document.getElementById("gloryBar").style.width = Math.min(100,G.glory/gloryThreshold()*100)+"%";
 }
 // 建筑卡正面的小立面图：按建筑画剪影，不再用单字简写
 const BUILD_ART_KIND = { altar:"temple",tent:"tent",field:"farm",quarry:"mine",sentry:"tower",spearwk:"forge",watchtw:"tower",academy:"lab",ironmine:"mine",furnace:"forge",nitersh:"forge",foundry:"forge",barracks:"tent",depot:"forge",coalplant:"forge",grid:"tower",arcsm:"forge",chemp:"forge",cement:"forge",polym:"forge",opticsp:"lab",carbonp:"forge",semic:"lab",radio:"tower",facademy:"lab",magnetp:"forge",optfuse:"lab",biofuse:"lab",engfuse:"lab",lighth:"tower",stasis:"lab",resotw:"tower",warmill:"forge",battery:"forge",reactor:"forge",fuelfab:"forge",gmatrix:"temple",gatehub:"temple",beacon:"tower" };
@@ -2004,7 +2048,10 @@ function renderResearchView() {
   setHTML("researchArea", html);
 }
 function renderLogStrip() {
-  setHTML("logArea", '<div class="log-box">'+G.log.map(l=>'<p class="'+l.c+'">'+l.t+'</p>').join('')+'</div>');
+  const icon = { good:"good", warn:"warn", gold:"gold" };
+  setHTML("logArea", '<div class="log-timeline">'+G.log.map(l=>
+    '<div class="log-entry '+(icon[l.c]||"info")+'"><span class="log-text">'+l.t+'</span></div>'
+  ).join('')+'</div>');
 }
 function renderAllPanels() {
   renderRoster(); renderLandsView(); renderResearchView(); renderLogStrip();
@@ -2048,6 +2095,7 @@ function renderAll() {
     else if(act==="hero") recruitUnit();
     else if(act==="attack") attackLand(+t.dataset.i);
     else if(act==="research") startResearch(t.dataset.id);
+    else if(act==="scrolltab"){ _scrollTab = t.dataset.tab; renderScrollList(); }
   });
   CHEAT.badge(); CHEAT.listen();
   renderScrollList();

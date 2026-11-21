@@ -225,25 +225,28 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .unit-card,.land-card,.res-card { background:var(--panel); border:1px solid var(--border); border-radius:5px; padding:7px 8px; margin-bottom:6px; box-shadow:var(--shadow); }
 .land-card.liberated { border-color:#b8d8b8; background:var(--green-light); }
 .land-card.locked { opacity:0.5; }
-/* 异世界世界地图 */
-.worldmap{position:relative;width:100%;height:470px;background:linear-gradient(160deg,#fbfdff 0%,#f4f8ff 55%,#f7fbf7 100%);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow);}
-.wz{position:absolute;font-size:10px;letter-spacing:3px;color:#9aa8b8;pointer-events:none;}
+/* 异世界世界地图：地形底图 + 浮动据点 */
+.worldmap{position:relative;width:100%;height:560px;background:#eaf2f8;border:1px solid #d8e3ea;border-radius:10px;overflow:hidden;box-shadow:var(--shadow);}
+.mapbg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
 .maplines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
-.maplines line{stroke:#cdd9e6;stroke-width:.3;stroke-dasharray:1.2 1.2;}
-.maplines line.done{stroke:#5aa86a;stroke-dasharray:none;stroke-width:.45;}
-.mnode{position:absolute;transform:translate(-50%,-50%);width:78px;min-height:38px;background:#fff;border:1px solid var(--border);border-radius:7px;box-shadow:0 2px 6px rgba(30,50,80,.08);text-align:center;padding:4px 3px;z-index:2;user-select:none;}
-.mnode .mn-n{display:block;font-size:11px;font-weight:600;line-height:1.25;}
-.mnode .mn-p{display:block;font-size:10px;color:var(--text-muted);margin-top:2px;}
-.mnode.done{border-color:#8fc49a;background:#f0faf1;}
-.mnode.done .mn-p{color:#4f9a62;}
-.mnode.open{border-color:#7ba9e0;background:#f2f7ff;cursor:pointer;}
-.mnode.open:hover{transform:translate(-50%,-50%) scale(1.08);box-shadow:0 5px 14px rgba(40,80,140,.18);z-index:5;}
-.mnode.lock{opacity:1;background:#fafbfd;border-color:#e3e8ef;box-shadow:none;}
-.mnode.lock .mn-n{color:#6b7a8d;}
-.mnode.lock .mn-p{color:#aab4c0;}
-.mnode.now{border-color:var(--gold);box-shadow:0 0 0 2px rgba(220,170,60,.25);}
+.maplines line{stroke:#aebfd0;stroke-width:.22;stroke-dasharray:1 1.2;opacity:.75;}
+.maplines line.done{stroke:#5aa86a;stroke-dasharray:none;stroke-width:.42;opacity:.9;}
+.wz{position:absolute;transform:translate(-50%,0);font-size:10px;letter-spacing:4px;color:#8296a8;pointer-events:none;z-index:2;text-shadow:0 1px 0 #fff;}
+.mnode{position:absolute;transform:translate(-50%,-50%);width:13px;height:13px;border-radius:50%;background:#c8d2dd;border:2px solid #fff;box-shadow:0 1px 4px rgba(30,50,80,.28);z-index:3;cursor:default;transition:transform .12s ease,box-shadow .12s ease;}
+.mnode .mn-n{position:absolute;top:15px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:9.5px;line-height:1.1;font-weight:600;color:#7f8d9c;text-shadow:0 0 3px #fff,0 0 4px #fff,0 0 5px #fff;pointer-events:none;}
+.mnode .mn-p{display:none;}
+.mnode.done{background:#54a467;}
+.mnode.done .mn-n{color:#3d8050;}
+.mnode.open{background:#4d8ed4;cursor:pointer;}
+.mnode.open .mn-n{color:#2c6fb6;}
+.mnode.lock{background:#c8d2dd;}
+.mnode.now{box-shadow:0 0 0 3px rgba(220,170,60,.38),0 1px 5px rgba(30,50,80,.25);}
+.mnode:hover{z-index:8;transform:translate(-50%,-50%) scale(1.4);}
+.mnode:hover .mn-p{display:block;position:absolute;bottom:17px;left:50%;transform:translateX(-50%);white-space:nowrap;background:#fff;border:1px solid var(--border);border-radius:4px;padding:2px 5px;font-size:9px;color:var(--text-secondary);box-shadow:0 2px 8px rgba(30,50,80,.15);}
 .map-status{margin-top:8px;text-align:center;font-size:11px;color:var(--text-secondary);}
 .map-status b{color:var(--blue);font-weight:600;}
+.map-legend{margin-top:5px;text-align:center;font-size:10px;color:var(--text-muted);}
+.map-legend i{display:inline-block;width:7px;height:7px;border-radius:50%;margin:0 3px 0 10px;vertical-align:middle;}
 .soldier-card { background:var(--panel); border:1px solid var(--border); border-radius:5px; padding:6px 8px; margin-bottom:5px; display:flex; align-items:center; gap:7px; }
 .soldier-card.healing { border-color:var(--yellow); background:var(--yellow-light); }
 .soldier-card.patroling { border-color:#b8d8b8; }
@@ -630,7 +633,7 @@ function autoEquip(hero, drop){
   return false;
 }
 
-// ---------- 异世界定义（二十处，逐层征战） ----------
+// ---------- 异世界定义（三十二处，逐层征战；前二十处索引保持不变，兼容老存档） ----------
 const LANDS = [
   { name:"荒村田垄",zone:"边缘",power:15,cost:{food:10},reward:{seed:6,belief:30,build:50},landRate:{seed:1},lore:"第一垄绿",loreText:"陶罐里的种核还活着。第七天早上田里冒出一点绿，五个人蹲在田埂上看了整整一个早晨。领队说：「够了，这就够我们活下去了。」",set:"教程关。垄沟里翻出装着种核的陶罐——这个世界的春天没死透"},{ name:"旧城苗圃",zone:"边缘",power:40,cost:{food:30,belief:20,seed:5},reward:{seed:12,belief:80,food:60},landRate:{seed:1},lore:"褪色的秩序",loreText:"苗房记录写着：「今年花没有开。不是枯了——是没开。」褪色是秩序：先是不能生长，再是不能改变，最后是不能记得。",set:"苗床还在，种子罐没开封——这个世界欠自己的春天，从这里还起"},{ name:"街心花园",zone:"边缘",power:110,cost:{food:50,belief:50},reward:{belief:80,food:40},landRate:{},lore:"等春天的人",loreText:"站桩死者守着花坛几十年。远征队把花坛原来的名字重新刻上小碑——第二天，他朝花坛挪了半步。",set:"站桩死者守着花坛不动。把花坛原来的名字重新刻上小碑，他就挪了半步"},{ name:"河湾平地",zone:"腹地",power:150,cost:{food:100,belief:100},reward:{food:200,iron:15,belief:200},landRate:{iron:1},lore:"大地的心跳",loreText:"守夜的人说，土地深处偶尔能听见极远、极沉的声响——像这片大地缓慢的心跳重新开始。灰铁在湾底沉成层，世界正在把自己重新记起来。",set:"河还没褪色，湾里的土是湿的。河床冲下来的灰铁在湾底沉成层"},{ name:"旧镇广场",zone:"腹地",power:500,cost:{food:200,belief:200,iron:10},reward:{build:300,iron:10,belief:400,crystal:5},landRate:{crystal:1},lore:"刻字的砖",loreText:"广场地砖下翻出旧城的界碑：「此处为第七区边界，立碑为证。」落款的名字后面刻着一行小字：「勿忘」。他们没忘，只是被忘掉了。",set:"广场中央聚集的灰体群——第一次要打硬仗。广场地砖下开始凝出壤晶"},{ name:"褪色之心",zone:"深处",power:1600,cost:{food:600,belief:600,iron:40},reward:{belief:2000,crystal:15},landRate:{crystal:1},lore:"世界停止褪色",loreText:"第六块地开垦完那天，田里的绿连成片，褪色停了——旧文明记录里这叫「不可能」。",set:"世界褪色最重处，无具体形态，纯氛围战。收复后田里的绿连成片，褪色停了"},
   { name:"灰烬车站",zone:"深处",power:2800,cost:{food:300,belief:300,iron:30},reward:{belief:1200,build:600,relics:5},landRate:{relics:1},lore:"最后一班车",loreText:"站台电子牌还亮着，滚动的终点站名字已经褪成一排横线。列车没有来过，但有人一直在等——等到自己也站成了站牌。",set:"锈轨穿过候车厅，售票窗口里卡着半张没撕完的车票"},
@@ -646,24 +649,84 @@ const LANDS = [
   { name:"星坠原",zone:"彼岸",power:80000,cost:{food:6500,belief:6500,nuclear:20},reward:{belief:32000,crystal:300,nuclear:10},landRate:{crystal:4},lore:"天空掉下来的东西",loreText:"原野上散落着发烫的黑石，是很多年前从天上掉下来的。灰体不肯靠近，远征队把黑石一块块搬开，露出下面的土——土是温的。",set:"黑色陨坑排成一列，坑底有微弱的光在脉动"},
   { name:"记忆回廊",zone:"彼岸",power:100000,cost:{food:8000,belief:8000,superF:20},reward:{belief:40000,polyF:20,crystal:350},landRate:{superF:2},lore:"走过的都还在",loreText:"走廊两侧挂满画，画的是远征队自己走过的路。有些路他们还没走过，画却已经挂在那里了。领队说：别看太久了。",set:"两侧墙上挂满未干油画，画里是这支队伍还没到达的地方"},
   { name:"世界尽头",zone:"彼岸",power:130000,cost:{food:10000,belief:10000,nuclear:40,relics:100},reward:{belief:50000,relics:120,crystal:500},landRate:{relics:5},lore:"路到这里为止",loreText:"尽头没有墙，只有一条很细的线。线的那边什么都没有——连褪色都没有。远征队在线前坐下，把名字一个一个念了一遍。",set:"地面裂开一道笔直的缝，缝里是纯粹的空白，没有光也没有暗"},
-  { name:"门后之地",zone:"彼岸",power:180000,cost:{food:13000,belief:13000,superF:40,glassF:30},reward:{belief:70000,nuclear:30,crystal:800,superF:30},landRate:{nuclear:2},lore:"推门之后",loreText:"门后不是另一个世界，是这个世界还没褪色的样子。树是绿的，水是清的，有人在没有影子的光里喊他们的名字。领队把门推开了。",set:"门后是一片完整的旧世界，绿得像一个还没做完的梦"}
+  { name:"门后之地",zone:"彼岸",power:180000,cost:{food:13000,belief:13000,superF:40,glassF:30},reward:{belief:70000,nuclear:30,crystal:800,superF:30},landRate:{nuclear:2},lore:"推门之后",loreText:"门后不是另一个世界，是这个世界还没褪色的样子。树是绿的，水是清的，有人在没有影子的光里喊他们的名字。领队把门推开了。",set:"门后是一片完整的旧世界，绿得像一个还没做完的梦"},
+  { name:"白昼之丘",zone:"彼岸",power:220000,cost:{food:15000,belief:15000,glassF:40},reward:{belief:80000,crystal:900,glassF:20},landRate:{glassF:2},lore:"不落的光",loreText:"丘陵上没有黄昏，太阳停在西边一动不动。影子被钉在脚下，走多远都跟着。守丘人说：光太久了，久到没人记得暗是什么。",set:"丘陵上永远没有黄昏，影子钉在脚下，草长得比人高"},
+  { name:"潮汐书库",zone:"彼岸",power:270000,cost:{food:18000,belief:18000,relics:120},reward:{belief:95000,relics:140,crystal:1000},landRate:{relics:6},lore:"被水读过的书",loreText:"书架泡在缓慢涨落的水里，书页翻动的声音像潮。管理员说水不是在毁书，是在读——它把每一页都读成了盐。",set:"书架立在潮水里，书页自己翻动，读过的字都变成盐"},
+  { name:"无名碑林",zone:"彼岸",power:330000,cost:{food:21000,belief:21000,crystal:1000},reward:{belief:110000,relics:160,crystal:1200},landRate:{relics:6},lore:"每个名字都是路标",loreText:"碑上只有一个字，或没有字。远征队在碑林里走了三天，发现碑的排布是一条路——通向林子中心一块空地，那里等着他们的碑还是空白。",set:"石碑密不透风，碑面空白，排布本身指向林心"},
+  { name:"静海灯塔",zone:"彼岸",power:400000,cost:{food:25000,belief:25000,nuclear:60},reward:{belief:130000,nuclear:40,crystal:1400},landRate:{nuclear:3},lore:"海不动了",loreText:"海面平得像一块玻璃，浪停在将要碎掉的那一瞬。灯塔还在一圈圈扫，光扫过哪里，哪里的时间就开始走。",set:"海面凝固在浪将碎未碎的一瞬，灯塔的光扫过才有波纹"},
+  { name:"长夜温室",zone:"彼岸",power:480000,cost:{food:30000,belief:30000,superF:50},reward:{belief:150000,superF:30,crystal:1600},landRate:{superF:3},lore:"夜里也在生长",loreText:"温室里没有灯，植物却长得很好。园丁说它们已经不靠光了——靠的是记得自己曾经被光照过。",set:"漆黑温室里植物长得极好，靠的是对光的记忆"},
+  { name:"钟摆之城",zone:"域外",power:580000,cost:{food:36000,belief:36000,alloy:200},reward:{belief:180000,alloy:120,crystal:1800},landRate:{alloy:2},lore:"停在同一秒",loreText:"城里所有钟摆都停着，唯独市政厅那口还在走。每走一格，城里就老一天；每停一下，所有人就同时年轻回去。",set:"全城的钟摆停在同一个角度，只有市政厅的钟还在走"},
+  { name:"双月荒原",zone:"域外",power:700000,cost:{food:43000,belief:43000,chip:120},reward:{belief:210000,chip:80,relics:200},landRate:{chip:2},lore:"两个影子",loreText:"天上有两轮月亮，所有东西都投下两道影子。远征队数了数自己的影子——也是两道，但其中一道比另一道老得多。",set:"双月当空，每件东西都投下两道影子，其中一道更老"},
+  { name:"灰烬王座",zone:"域外",power:850000,cost:{food:52000,belief:52000,relics:250},reward:{belief:250000,relics:300,crystal:2200},landRate:{relics:8},lore:"坐上去的人",loreText:"王座上堆满灰，灰里有一层一层的人形凹痕。每个坐上去的人都以为自己是第一个，其实他们只是又一层灰。",set:"王座由灰堆成，灰里叠着一层又一层坐过的人形"},
+  { name:"无声之海",zone:"域外",power:1050000,cost:{food:62000,belief:62000,nuclear:100},reward:{belief:300000,nuclear:80,crystal:2600},landRate:{nuclear:4},lore:"声音沉在底下",loreText:"海面静得可怕，但水下有整座城在喊。远征队把耳朵贴到船底，听见的全是名字——他们自己的名字。",set:"海面无声，海底的城在喊，喊的是远征队自己的名字"},
+  { name:"序章之门",zone:"域外",power:1300000,cost:{food:75000,belief:75000,polyF:80},reward:{belief:360000,polyF:60,superF:60},landRate:{polyF:3},lore:"从头再来一次",loreText:"门上写着「序章」。推开门，里面是荒村田垄——陶罐、种核、五个蹲在田埂上的人。他们抬头看见远征队，问：春天到了吗？",set:"门后是出发那天的田垄，五个还在等春天的人抬头看他们"},
+  { name:"最初的梦",zone:"域外",power:1600000,cost:{food:90000,belief:90000,glassF:120,superF:100},reward:{belief:430000,glassF:100,crystal:3200},landRate:{crystal:8},lore:"梦还没做完",loreText:"这里保存着世界褪色前做的最后一个梦。梦里有田、有路、有还没来得及命名的人。远征队没有叫醒它，只是坐在边上守着。",set:"一片还没做完的梦，田垄和路都停在落笔的那一瞬"},
+  { name:"无门之境",zone:"域外",power:2000000,cost:{food:110000,belief:110000,nuclear:150,relics:400},reward:{belief:520000,nuclear:120,relics:500,crystal:4000},landRate:{relics:10},lore:"不需要门了",loreText:"走到这里才发现，门从来不是通向别处的东西——是通向自己。领队把最后一块碑立好，上面只写：我们到过。",set:"没有门，没有墙，只有一块新立的碑：我们到过"}
 ];
-// 世界地图：节点坐标（百分比）与推进连线
+// 世界地图：从一个起点向外扩圈的据点坐标（百分比）；中心 index0 为起点
 const LAND_POS = [
-  [10,17],[23,10],[15,29],[33,31],[29,45],[43,53],[51,43],[57,59],[49,71],
-  [65,32],[71,49],[65,64],[80,19],[89,30],[78,43],[90,53],[77,69],[87,76],[73,87],[93,89]
+  [50,50],[50,31],[62.1,40.5],[62.1,59.5],[50,69],[37.9,59.5],[37.9,40.5],
+  [58.3,19.6],[71.8,31.2],[77,50],[71.8,68.8],[58.3,80.4],[41.7,80.4],[28.2,68.8],[23,50],[28.2,31.2],[41.7,19.6],
+  [54.2,8.2],[70,13.6],[82.4,25.3],[89.1,41.3],[89.1,58.7],[82.4,74.7],[70,86.4],[54.2,91.8],[37.6,89.9],[23.2,81.2],[13.5,67.1],[10,50],[13.5,32.9],[23.2,18.8],[37.6,10.1]
 ];
-const MAP_LINKS = [
-  [0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],[9,10],[10,11],
-  [11,12],[12,13],[13,14],[14,15],[15,16],[16,17],[17,18],[18,19],
-  [2,4],[4,7],[8,11],[11,14],[15,17]
-];
+// 地图底图：像真实世界地图——海洋 + 一整块不规则大陆 + 岛屿 + 海岸线 + 山脉河流湖泊 + 经纬网 + 罗盘
+const MAP_BG = (function(){
+  let s = '<svg class="mapbg" viewBox="0 0 100 100" preserveAspectRatio="none">';
+  s += '<defs>'+
+    '<linearGradient id="seaG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e4eef7"/><stop offset="1" stop-color="#dceaf4"/></linearGradient>'+
+    '<linearGradient id="landG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f0f4e6"/><stop offset="1" stop-color="#e3edd8"/></linearGradient>'+
+    '</defs>';
+  s += '<rect x="0" y="0" width="100" height="100" fill="url(#seaG)"/>';
+  // 经纬网
+  s += '<g stroke="#c8dae8" stroke-width=".12" opacity=".55">';
+  for(let x=10;x<100;x+=10) s += '<line x1="'+x+'" y1="0" x2="'+x+'" y2="100"/>';
+  for(let y=10;y<100;y+=10) s += '<line x1="0" y1="'+y+'" x2="100" y2="'+y+'"/>';
+  s += '</g>';
+  // 主大陆：不规则多边形海岸线
+  const land = 'M9,22 C13,17 20,16 25,12 C31,7 40,6 47,9 C53,11 57,8 64,10 C71,12 76,9 82,14 C88,19 91,26 89,33 C87,40 92,45 90,53 C88,61 92,68 87,75 C83,81 75,84 68,86 C61,88 55,93 47,92 C39,91 33,94 26,89 C19,84 14,79 12,71 C10,63 7,56 9,48 C11,40 6,29 9,22 Z';
+  s += '<path d="'+land+'" fill="url(#landG)" stroke="#c3d4bd" stroke-width=".45"/>';
+  // 内陆高地色块
+  s += '<path d="M38,30 C46,24 58,25 65,32 C71,38 70,50 63,55 C55,61 43,59 37,51 C32,44 32,35 38,30 Z" fill="#dbe8cf" opacity=".55"/>';
+  s += '<path d="M20,60 C26,55 34,58 36,65 C38,72 32,78 25,76 C18,74 15,65 20,60 Z" fill="#dbe8cf" opacity=".5"/>';
+  // 海岸线内侧描边（层次）
+  s += '<path d="M12,30 C18,22 28,18 36,20 C45,22 50,16 60,18 C70,20 78,16 84,24 C88,30 86,38 88,46" fill="none" stroke="#d3e2ca" stroke-width=".3" opacity=".7"/>';
+  // 河流
+  s += '<path d="M44,20 C46,30 40,36 44,45 C48,54 40,60 43,70 C45,78 40,84 38,90" fill="none" stroke="#a9cde2" stroke-width=".75" opacity=".9"/>';
+  s += '<path d="M70,28 C68,38 74,44 70,54 C67,62 72,68 70,78" fill="none" stroke="#a9cde2" stroke-width=".55" opacity=".85"/>';
+  // 湖泊
+  s += '<ellipse cx="57" cy="40" rx="3.2" ry="2" fill="#bcd9ec" stroke="#a9cde2" stroke-width=".2"/>';
+  // 山脉
+  s += '<g fill="none" stroke="#b3c4ab" stroke-width=".35">';
+  [[30,36],[33,42],[27,44],[36,38],[62,60],[66,66],[59,66],[70,62],[48,74],[52,78],[44,78]].forEach(p=>{
+    s += '<path d="M'+(p[0]-1.6)+','+(p[1]+1)+' L'+p[0]+','+(p[1]-2.6)+' L'+(p[0]+1.6)+','+(p[1]+1)+'"/>';
+  });
+  s += '</g>';
+  // 外围岛屿
+  s += '<g fill="url(#landG)" stroke="#c3d4bd" stroke-width=".35">'+
+    '<path d="M6,84 C9,81 13,83 13,87 C13,91 8,92 6,89 C5,87 5,85 6,84 Z"/>'+
+    '<path d="M94,80 C97,78 99,81 98,85 C97,89 93,89 92,86 C91,83 92,81 94,80 Z"/>'+
+    '<path d="M90,18 C93,16 96,18 95,22 C94,25 90,25 89,22 C88,20 89,19 90,18 Z"/>'+
+    '</g>';
+  // 起点扩散圈（同心，体现从一点向外征战）
+  s += '<g fill="none" stroke="#c9b789" stroke-width=".3" stroke-dasharray="1.6 1.4" opacity=".75">'+
+    '<circle cx="50" cy="50" r="19"/><circle cx="50" cy="50" r="32"/><circle cx="50" cy="50" r="43"/>'+
+    '</g>';
+  s += '<g transform="translate(50,50)"><circle r="1.6" fill="#dcaa3c" opacity=".85"/><circle r="3" fill="none" stroke="#dcaa3c" stroke-width=".3" opacity=".7"/></g>';
+  // 罗盘
+  s += '<g transform="translate(94,93)" fill="none" stroke="#9db0c0" stroke-width=".3"><circle r="4"/><path d="M0,-3 L0,3 M-3,0 L3,0"/><path d="M0,-3 L-1,0 L1,0 Z" fill="#9db0c0"/></g>';
+  s += '</svg>';
+  return s;
+})();
 // 巡逻缴获模板（按地块深度）
 const PATROL_LOOT = [
   {food:6,belief:6},{food:8,seed:2},{belief:12,build:6},{iron:2,food:10},{iron:2,crystal:1,build:12},{crystal:2,belief:30},
   {relics:1,belief:40},{chem:3,belief:60},{tissue:2,belief:80},{relics:2,belief:120},{crystal:4,belief:180},{relics:3,crystal:5,belief:260},
   {food:1400,belief:280},{relics:4,belief:320},{relics:4,crystal:8,belief:380},{superF:1,belief:460},
-  {nuclear:1,belief:560},{crystal:12,belief:680},{relics:6,crystal:16,belief:820},{nuclear:2,relics:8,belief:1000}
+  {nuclear:1,belief:560},{crystal:12,belief:680},{relics:6,crystal:16,belief:820},{nuclear:2,relics:8,belief:1000},
+  {glassF:1,belief:1200},{relics:10,belief:1400},{relics:10,crystal:20,belief:1600},{crystal:20,relics:12,belief:1800},
+  {nuclear:2,belief:2000},{superF:2,belief:2200},{glassF:4,belief:2400},{alloy:10,belief:2600},
+  {chip:6,belief:2800},{relics:20,crystal:30,belief:3000},{nuclear:4,superF:3,belief:3200},
+  {polyF:4,belief:3500}
 ];
 
 // ---------- 研究定义（26 项） ----------
@@ -1012,7 +1075,7 @@ function showModal(title,html,btns) {
 function closeModal(){ document.getElementById("modalBg").classList.remove("show"); }
 function showHelp(){
   showModal("玩法说明（V8）","<div class='mtext'>"+
-  "【目标】征战二十处异世界 → 建成信标 → 荣光 ≥ 阈值 → 建门廊枢纽 → 推门换门。\n"+
+  "【目标】征战三十二处异世界 → 建成信标 → 荣光 ≥ 阈值 → 建门廊枢纽 → 推门换门。\n"+
   "【建造】无槽位限制，点击即完成。约束 = 资源指数上浮 + 科技纪元 + 异世界征战。\n"+
   "【升级】建筑不再单独升级，也不显示等级。研究对应的工艺科技后，建筑会换上新名字，之后新建的同类型建筑也沿用该名字。\n"+
   "【纪元】农耕→铁工→电气→融合→核能，每纪元解锁新建筑/新兵种。\n"+
@@ -2098,15 +2161,8 @@ function renderLandsView() {
   const nextIdx = G.lands.findIndex(l=>!l.liberated && !l.locked);
   let html = '<div class="sect-title">征战异世界 '+done+'/'+LANDS.length+'<span class="info-dot" title="英雄会带领士兵自动出征，逐处推进。点击已开放的节点可立即出征。">i</span></div>';
   html += '<div class="worldmap">';
-  [["边缘",4,5],["腹地",22,25],["深处",40,35],["核心",60,13],["彼岸",74,62]].forEach(([n,x,y])=>{
-    html += '<div class="wz" style="left:'+x+'%;top:'+y+'%">'+n+'</div>';
-  });
+  html += MAP_BG;
   html += '<svg class="maplines" viewBox="0 0 100 100" preserveAspectRatio="none">';
-  MAP_LINKS.forEach(([a,b])=>{
-    const p = LAND_POS[a], q = LAND_POS[b];
-    const lit = G.lands[a].liberated && G.lands[b].liberated;
-    html += '<line x1="'+p[0]+'" y1="'+p[1]+'" x2="'+q[0]+'" y2="'+q[1]+'"'+(lit?' class="done"':'')+'/>';
-  });
   html += '</svg>';
   LANDS.forEach((L,i)=>{
     const l = G.lands[i], p = LAND_POS[i];
@@ -2119,6 +2175,7 @@ function renderLandsView() {
       '<span class="mn-p">'+(l.liberated?'已征服':(l.locked?'未探明':L.power))+'</span></div>';
   });
   html += '</div>';
+  html += '<div class="map-legend"><i style="background:#54a467"></i>已征服<i style="background:#4d8ed4"></i>可进攻<i style="background:#c8d2dd"></i>未探明<i style="background:#fff;border:2px solid #dcaa3c"></i>当前目标 · 鼠标悬停查看据点详情</div>';
   if(G.expedition){
     html += '<div class="map-status">远征中：<b>'+LANDS[G.expedition.land].name+'</b> · 英雄 '+G.expedition.ids.length+' · 士兵 '+troopCount()+'</div>';
   } else if(nextIdx>=0){

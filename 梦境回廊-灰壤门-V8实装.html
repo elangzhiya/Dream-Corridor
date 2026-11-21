@@ -134,7 +134,16 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .kind-head .dot { width:7px; height:7px; border-radius:2px; flex-shrink:0; }
 .build-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:9px; width:100%; }
 /* 建筑卡：低饱和、浅底、细边框（参考 Epoch-Restart） */
-.build-card { background:var(--panel); border:1px solid #e1e5e9; border-radius:8px; overflow:hidden; transition:border-color .15s ease,background .15s ease,box-shadow .15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.04); position:relative; min-width:0; }
+.build-card { background:var(--panel); border:1px solid #e1e5e9; border-radius:8px; overflow:visible; transition:border-color .15s ease,background .15s ease,box-shadow .15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.04); position:relative; min-width:0; }
+/* 平时只显示建筑本身；详细信息悬停浮出 */
+.bface { display:flex; align-items:center; gap:6px; padding:6px 9px; }
+.bdetail { display:none; position:absolute; left:-1px; top:calc(100% + 3px); min-width:236px; max-width:290px; background:var(--panel); border:1px solid var(--border); border-radius:6px; box-shadow:0 6px 18px rgba(20,45,75,.18); padding:8px 10px; z-index:40; white-space:normal; }
+.build-card:hover, .build-card:focus-within { z-index:41; }
+.build-card:hover .bdetail, .build-card:focus-within .bdetail { display:block; }
+.bd-head { font-size:13px; font-weight:bold; color:var(--text); display:flex; align-items:center; gap:5px; flex-wrap:wrap; margin-bottom:3px; }
+.bd-line { font-size:12px; color:var(--text-secondary); line-height:1.45; margin-top:2px; }
+.bd-line.muted { color:var(--text-muted); font-size:11px; }
+.bd-foot { font-size:11px; color:var(--blue); margin-top:5px; padding-top:4px; border-top:1px solid var(--border-light); }
 .build-card:hover { border-color:#b0c4d8; background:#f5f7fa; }
 .build-card.clickable { cursor:pointer; }
 /* 点击反馈：按下瞬间下压 + 建成闪光 */
@@ -218,6 +227,7 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .btn-small { padding:3px 8px; font-size:12px; background:var(--blue-light); color:var(--blue); border:1px solid var(--blue); border-radius:3px; cursor:pointer; margin-top:3px; transition:.1s; user-select:none; }
 .btn-small:hover:not(:disabled) { background:var(--blue); color:#fff; }
 .btn-small:active:not(:disabled) { transform:translateY(1px) scale(0.95); filter:brightness(0.92); }
+.btn-small:disabled { background:var(--bg); color:var(--text-muted); border-color:var(--border); cursor:not-allowed; }
 @keyframes btnFlash { 0%{ box-shadow:0 0 0 0 rgba(74,143,95,0.6); } 100%{ box-shadow:0 0 0 7px rgba(74,143,95,0); } }
 .btn-small.flash { animation:btnFlash .55s ease-out; }
 .btn-small:disabled { background:var(--bg); color:var(--text-muted); border-color:var(--border); cursor:not-allowed; }
@@ -506,7 +516,7 @@ function chainState(id){
 // req:{res:研究id} / {land:idx} / 无
 const BUILDINGS = [
   // ===== T1 农耕纪元 =====
-  { id:"altar",era:1,kind:"core",n:"祈念坛",i:"坛",effect:"信念 +3/s",cost:{belief:20,build:15},prod:null,glory:20,onBuilt:"altar",lore:{tag:"lore",t:"祈念坛点燃",x:"坛火点燃的那一刻，灰壤的风突然变了方向。火光是金色的。\n\n坛边有人低声说了句：「值了。」"} },{ id:"tent",era:1,kind:"basic",n:"帐篷营地",i:"营",effect:"营地核心· 安置巡逻士兵",cost:{belief:10,build:15,food:10},glory:15,lv3:"营地扩建：新兵招募品质提升",lv5:"军事学院：新兵招募即 Lv2",lore:{tag:"build",t:"帐篷营地",x:"灰壤没有真正的黑夜。帐篷区外围的灰体数量增加了，它们不靠近，只是站在边缘。"} },{ id:"field",era:1,kind:"basic",n:"田垄采集点",i:"田",effect:"粮食 +2/s· 种核 +1/s",cost:{belief:20,build:15},prod:{food:2,seed:1},glory:10,lv3:"轮作制：产量再 +25%",lv5:"自动化农场：粮产 ×3（需火控计算机）",lore:{tag:"build",t:"田垄采集点",x:"第一块田翻好的时候，土是温的。田垄边上有一具灰体，蹲姿，面朝田地方向。"} },{ id:"quarry",era:1,kind:"basic",n:"碎石场",i:"矿",effect:"建材 +2/s",cost:{belief:15,build:10},prod:{build:2},glory:10,lv3:"破碎工艺：产量 +25%",lv5:"电弧料场：产量 ×2（需电气纪元）",lore:{tag:"build",t:"碎石场",x:"碎石场选在一处旧城墙遗址旁边。墙基里翻出一块刻了字的砖：「此处为第七区边界，立碑为证。」"} },{ id:"sentry",era:1,kind:"func",n:"武装哨所",i:"哨",effect:"解锁持盾者· 每座全军战力 +3%",cost:{belief:30,build:30,food:15},unlockU:["shield"],glory:25,lv3:"巡逻半径 +1：巡逻战力 +10%",lv5:"碉堡化：阵亡概率减半",onBuilt:"unlockU",lore:{tag:"lore",t:"武装哨所",x:"哨所立起来的第一天，持盾者小队在顶上挂了一盏灯。灰体怕光。"} },{ id:"spearwk",era:1,kind:"func",n:"矛刃维护所",i:"矛",effect:"解锁长矛手· 每座全军战力 +3%",cost:{belief:60,build:40,food:30},unlockU:["spear"],glory:25,onBuilt:"unlockU",lore:{tag:"lore",t:"矛刃维护所",x:"第一支长矛从灰铁里锻出来，矛刃上有一道纹路，像血管。"} },{ id:"watchtw",era:1,kind:"func",n:"了望台",i:"望",effect:"巡逻战力 +8%/座· 遇敌预警 +15s",cost:{belief:30,build:25},req:{res:"sentryry"},glory:10 },// ===== T2 铁工纪元 =====
+  { id:"altar",era:1,kind:"core",n:"祈念坛",i:"坛",effect:"信念 +3/s",cost:{belief:20,build:15},prod:null,glory:20,onBuilt:"altar",lore:{tag:"lore",t:"祈念坛点燃",x:"坛火点燃的那一刻，灰壤的风突然变了方向。火光是金色的。\n\n坛边有人低声说了句：「值了。」"} },{ id:"tent",era:1,kind:"basic",n:"帐篷营地",i:"营",effect:"营地核心· 每座容纳10士兵，决定士兵招募上限",cost:{belief:10,build:15,food:10},glory:15,lv3:"营地扩建：新兵招募品质提升",lv5:"军事学院：新兵招募即 Lv2",lore:{tag:"build",t:"帐篷营地",x:"灰壤没有真正的黑夜。帐篷区外围的灰体数量增加了，它们不靠近，只是站在边缘。"} },{ id:"field",era:1,kind:"basic",n:"田垄采集点",i:"田",effect:"粮食 +2/s· 种核 +1/s",cost:{belief:20,build:15},prod:{food:2,seed:1},glory:10,lv3:"轮作制：产量再 +25%",lv5:"自动化农场：粮产 ×3（需火控计算机）",lore:{tag:"build",t:"田垄采集点",x:"第一块田翻好的时候，土是温的。田垄边上有一具灰体，蹲姿，面朝田地方向。"} },{ id:"quarry",era:1,kind:"basic",n:"碎石场",i:"矿",effect:"建材 +2/s",cost:{belief:15,build:10},prod:{build:2},glory:10,lv3:"破碎工艺：产量 +25%",lv5:"电弧料场：产量 ×2（需电气纪元）",lore:{tag:"build",t:"碎石场",x:"碎石场选在一处旧城墙遗址旁边。墙基里翻出一块刻了字的砖：「此处为第七区边界，立碑为证。」"} },{ id:"sentry",era:1,kind:"func",n:"武装哨所",i:"哨",effect:"解锁持盾者· 每座全军战力 +3%",cost:{belief:30,build:30,food:15},unlockU:["shield"],glory:25,lv3:"巡逻半径 +1：巡逻战力 +10%",lv5:"碉堡化：阵亡概率减半",onBuilt:"unlockU",lore:{tag:"lore",t:"武装哨所",x:"哨所立起来的第一天，持盾者小队在顶上挂了一盏灯。灰体怕光。"} },{ id:"spearwk",era:1,kind:"func",n:"矛刃维护所",i:"矛",effect:"解锁长矛手· 每座全军战力 +3%",cost:{belief:60,build:40,food:30},unlockU:["spear"],glory:25,onBuilt:"unlockU",lore:{tag:"lore",t:"矛刃维护所",x:"第一支长矛从灰铁里锻出来，矛刃上有一道纹路，像血管。"} },{ id:"watchtw",era:1,kind:"func",n:"了望台",i:"望",effect:"巡逻战力 +8%/座· 遇敌预警 +15s",cost:{belief:30,build:25},req:{res:"sentryry"},glory:10 },// ===== T2 铁工纪元 =====
   { id:"academy",era:1,kind:"core",n:"研究院",i:"院",effect:"解锁科技研究（铁工纪元核心）",cost:{belief:120,build:80,iron:30},glory:60,onBuilt:"era2",lore:{tag:"lore",t:"研究院",x:"领队把现代社会带来的教科书搬进帐篷：「我们缺的不是知识，是把知识重新变成东西的产线。」"} },{ id:"ironmine",era:1,kind:"basic",n:"灰铁矿场",i:"铁",effect:"灰铁 +1/s（需收复河湾平地）",cost:{belief:60,build:50},prod:{iron:1},req:{land:3},glory:15 },{ id:"furnace",era:2,kind:"basic",n:"熔炉",i:"熔",effect:"灰铁2/s+建材3/s → 钢铁3/s",cost:{belief:80,build:60,iron:25},conv:{in:{iron:2,build:4},out:{steel:4}},req:{res:"metall"},glory:20,lv3:"合金配比：钢铁产率 +30%",lv5:"连铸产线：电弧冶炼厂产能 ×2"},{ id:"nitersh",era:2,kind:"basic",n:"硝化车间",i:"硝",effect:"建材2/s+灰铁1/s → 弹药2/s",cost:{belief:90,build:55,iron:20},conv:{in:{build:2,iron:1},out:{ammo:2}},req:{res:"niter"},glory:15,lv5:"无烟火药（聚合化学后自动升级）：产率 +50%"},{ id:"foundry",era:2,kind:"func",n:"铸兵坊",i:"铸",effect:"解锁灰铁步枪手· 弹药配属",cost:{belief:100,steel:40},unlockU:["rifle"],req:{res:"rifling"},glory:25,onBuilt:"unlockU"},{ id:"barracks",era:2,kind:"basic",n:"营房",i:"房",effect:"疗伤位 +2· 老兵编制入口",cost:{belief:70,build:55,steel:30},glory:20,lv3:"医疗扩容：疗伤位 +2",lv5:"军医院：疗伤速度 ×2"},{ id:"depot",era:2,kind:"func",n:"货运栈",i:"运",effect:"离线收益效率 +10%/座",cost:{belief:60,build:45},glory:15 },// ===== T3 电气纪元 =====
   { id:"coalplant",era:3,kind:"basic",n:"火电厂",i:"电",effect:"钢铁1/s → 电力 +6/s",cost:{belief:150,steel:60},conv:{in:{steel:1},out:{power:6}},req:{res:"elec"},glory:25 },{ id:"grid",era:3,kind:"core",n:"电网",i:"网",effect:"唯一· 电力统一调度· 解锁全部耗电建筑",cost:{belief:200,steel:100},req:{res:"gridt"},glory:40,onBuilt:"gridOn",lore:{tag:"lore",t:"电网贯通",x:"合闸那一刻，整片营地的灯同时亮了。灰体在光边缘停住——它们很久没见过这么大的亮。"} },{ id:"arcsm",era:3,kind:"basic",n:"电弧冶炼厂",i:"冶",effect:"钢铁2/s+电2/s → 合金钢3/s",cost:{belief:180,steel:80,power:20},conv:{in:{steel:2,power:2},out:{alloy:3}},req:{res:"arcsmelt"},glory:25,lv5:"与熔炉连铸联动：产能 ×2"},{ id:"chemp",era:3,kind:"basic",n:"化工联合体",i:"工",effect:"建材4/s+粮食2/s → 化工原料3/s",cost:{belief:160,build:90,steel:50},conv:{in:{build:4,food:2},out:{chem:3}},glory:25 },{ id:"cement",era:3,kind:"basic",n:"水泥窑",i:"泥",effect:"建材4/s+灰铁1/s → 混凝土3/s",cost:{belief:130,build:80,steel:40},conv:{in:{build:4,iron:1},out:{concrete:3}},req:{res:"silicate"},glory:15 },{ id:"polym",era:3,kind:"basic",n:"聚合厂",i:"聚",effect:"化工2/s+电1/s → 塑料2/s",cost:{belief:170,chem:50,power:20},conv:{in:{chem:2,power:1},out:{plastic:2}},req:{res:"polymer"},glory:20 },{ id:"opticsp",era:3,kind:"basic",n:"精密光学所",i:"光",effect:"塑料1/s+化工1/s → 光学玻璃1/s",cost:{belief:180,plastic:40,power:25},conv:{in:{plastic:1,chem:1},out:{optics:1}},req:{res:"opticsE"},glory:20 },{ id:"carbonp",era:3,kind:"basic",n:"碳纤维厂",i:"碳",effect:"化工2/s+电1/s → 碳纤维2/s",cost:{belief:200,chem:60,power:30},conv:{in:{chem:2,power:1},out:{carbon:2}},glory:25 },{ id:"semic",era:3,kind:"basic",n:"半导体厂",i:"芯",effect:"塑料1/s+建材1/s+电2/s → 芯片1/s",cost:{belief:220,carbon:30,power:40},conv:{in:{plastic:1,build:1,power:2},out:{chip:1}},req:{res:"semi"},glory:30 },{ id:"radio",era:3,kind:"func",n:"无线电哨",i:"讯",effect:"巡逻战力 +15%/座· 预警 +30s",cost:{belief:140,steel:60},glory:20 },// ===== T4 融合纪元 =====
   { id:"facademy",era:3,kind:"core",n:"融合研究院",i:"融",effect:"唯一· 解锁三条融合链异界科技研究（融合纪元核心）",cost:{belief:400,alloy:80,carbon:50},glory:60,onBuilt:"era4check",lore:{tag:"lore",t:"融合研究院",x:"第一堂课领队只写了一行板书：「现实工程学 × 灰壤法则 = 两个世界都没有的东西。」"} },{ id:"magnetp",era:4,kind:"basic",n:"稀土精炼厂",i:"磁",effect:"灰铁2/s+电2/s → 稀土磁体1/s（腹地×2）",cost:{belief:280,alloy:60,power:40},conv:{in:{iron:2,power:2},out:{magnet:1}},req:{res:"magnetE"},glory:25 },{ id:"optfuse",era:4,kind:"fused",n:"光学融合车间",i:"恒",effect:"光学玻璃1/s+壤晶1/s → 恒昼光学玻璃1/s",cost:{belief:350,optics:60,power:40},conv:{in:{optics:1,crystal:1},out:{glassF:1}},req:{res:"fade"},glory:30 },{ id:"biofuse",era:4,kind:"fused",n:"生物融合车间",i:"同",effect:"塑料1/s+灰体组织1/s → 同调聚合物1/s",cost:{belief:300,plastic:50,power:30},conv:{in:{plastic:1,tissue:1},out:{polyF:1}},req:{res:"sync"},glory:30 },{ id:"engfuse",era:4,kind:"fused",n:"能量融合车间",i:"鸣",effect:"稀土磁体1/s+壤晶1/s+电4/s → 共鸣超导体1/s",cost:{belief:400,magnet:40,power:50},conv:{in:{magnet:1,crystal:1,power:4},out:{superF:1}},req:{res:"supercon"},glory:30 },{ id:"lighth",era:4,kind:"fused",n:"恒昼灯塔",i:"塔",effect:"全资源产出 +15%/座 · 运转耗电2/s",cost:{belief:600,glassF:40,power:100},glory:50 },{ id:"stasis",era:4,kind:"fused",n:"停滞仓",i:"滞",effect:"疗伤速度 ×1.5/座· 离线效率 +10%/座",cost:{belief:400,polyF:30,relics:30},glory:40 },{ id:"resotw",era:4,kind:"fused",n:"共鸣塔",i:"振",effect:"信念产出 +50%/座· 与祈念坛叠加",cost:{belief:500,superF:30,crystal:80},glory:40 },{ id:"warmill",era:4,kind:"func",n:"恒昼兵工厂",i:"兵",effect:"解锁曙光动力甲· 恒昼卫与共鸣炮兵的装备线",cost:{belief:300,carbon:40,chip:20},glory:40 },{ id:"battery",era:4,kind:"func",n:"储能站",i:"储",effect:"电力产率 +15%/座",cost:{belief:260,chip:30,alloy:50},req:{res:"storage"},glory:20 },// ===== T5 核能纪元 =====
@@ -760,7 +770,7 @@ function showHelp(){
   "【建造】无槽位限制，点击即完成。约束 = 资源指数上浮 + 科技纪元 + 故土收复。\n"+
   "【升级】建筑不再单独升级。研究对应的工艺科技后，该建筑自动升级，之后新建的同类型建筑也继承该等级。\n"+
   "【纪元】农耕→铁工→电气→融合→核能，每纪元解锁新建筑/新兵种。\n"+
-  "【士兵】两套：①数字编制——按数量成批招募，无名字无等级，战死会减员，进荣誉墙（每5人信念+1/s 永久）；②英雄——登记无上限，有名字/等级/经验/血量，造价×3，永不战死（重伤只疗养），自带8装备槽。\n"+
+  "【士兵】两套：①数字编制——按数量成批招募，无名字无等级，战死会减员，进荣誉墙（每5人信念+1/s 永久）；招募上限由帐篷营地决定：每座营地容纳 10 人，营地升级后 +50%，需建营地才能招兵；②英雄——登记无上限，有名字/等级/经验/血量，造价×3，永不战死（重伤只疗养），自带8装备槽。\n"+
   "【装备】武器/头盔/护甲/战靴/护手/披风/护符/指环 8 槽，白绿蓝紫金 5 品级（战力×1/1.6/2.5/4/6.5）。英雄巡逻与出征自动打怪，掉落品级越好越靠深处，自动换上更优装备。\n"+
   "【科研】在研究页开展研究，耗时分钟~小时级；融合链素材靠战斗缴获。\n"+
   "【存档】每5秒自动存档，离线最长12小时按效率补算。</div>");
@@ -801,6 +811,9 @@ function heroGearPower(s){
 }
 // 普通士兵：纯数字计数，无等级/装备，战力=数量×兵种基础
 function troopCount(){ return Object.values(G.troops||{}).reduce((a,b)=>a+b,0); }
+// 营地容量：每座帐篷营地容纳的士兵数（随营地等级提升）
+function campCapPer(){ const lv=(G.B.tent&&G.B.tent.lv)||1; return 10*Math.pow(1.5,lv-1); }
+function troopCap(){ return Math.floor((G.B.tent&&G.B.tent.count||0)*campCapPer()); }
 function troopArmyPower(){
   if(cheatOn()) return 1e9;
   let p=0;
@@ -1122,6 +1135,8 @@ function recruitTroop(type, n){
   const u = UNITS[type];
   if(!u) return;
   if(!G.unitUnlocked[type]){ showToast("兵种未解锁","error"); return; }
+  const cap = troopCap();
+  if(troopCount()+n > cap){ showToast("营地容量不足（"+troopCount()+"/"+cap+"），先建帐篷营地","error"); return; }
   const cost = {};
   Object.entries(u.cost).forEach(([k,v])=>{ cost[k]=v*n; });
   if(!canAfford(cost)){ showToast("招募资源不足","error"); return; }
@@ -1474,7 +1489,7 @@ function renderResBar() {
         '<span class="rrate'+(neg?' neg':zero?' zero':'')+'">'+fmtRate(rt)+'</span></div>'+
         (zero?'':'<i class="grow'+(neg?' neg':' run')+'" style="--dur:'+dur+'s"></i>')+'</div>';
     }).join('');
-    html += '<div class="resrow" data-k="_troops"><div class="rline"><span class="ricon">兵</span><span class="rname">士兵</span><span class="rval" data-v="troops">'+troopCount()+'</span></div></div>';
+    html += '<div class="resrow" data-k="_troops"><div class="rline"><span class="ricon">兵</span><span class="rname">士兵</span><span class="rval" data-v="troops">'+troopCount()+'/'+troopCap()+'</span></div></div>';
     html += '<div class="resrow" data-k="_heroes"><div class="rline"><span class="ricon">英</span><span class="rname">英雄</span><span class="rval" data-v="heroes">'+G.soldiers.length+'</span></div></div>';
     bar.innerHTML = html;
     for(const k in _resNodes) delete _resNodes[k];
@@ -1506,7 +1521,7 @@ function renderResBar() {
       }
     });
   }
-  if(_resNodes._troops && _resNodes._troops.val) _resNodes._troops.val.textContent = troopCount();
+  if(_resNodes._troops && _resNodes._troops.val) _resNodes._troops.val.textContent = troopCount()+'/'+troopCap();
   if(_resNodes._heroes && _resNodes._heroes.val) _resNodes._heroes.val.textContent = ""+G.soldiers.length;
   document.getElementById("gloryVal").textContent = fmtNum(G.glory);
   document.getElementById("gloryRate").textContent = G.gloryIdle ? "+6/s" : ("目标 "+fmtNum(gloryThreshold()));
@@ -1548,21 +1563,25 @@ function renderBuild() {
       // 点击卡片=建造（可重复堆叠）；等级由研究解锁，卡上只显示当前等级。
       const canBuild = unlocked && !(isCore&&built);
       const ready = canBuild ? canAfford(cost) : false;
-      const lvtag = built ? '<span class="lvtag">Lv'+s.lv+'</span>' :"";
-      const badge = isCore?'<span class="badge badge-core">核心唯一</span>':b.kind==="fused"?'<span class="badge badge-fused">融合</span>':b.kind==="func"?'<span class="badge badge-func">功能</span>':'<span class="badge badge-basic">基础</span>';
-      const newTag = (!built && e===G.era && vis[vis.length-1]===b && !G._seenCard[b.id]) ? '<span class="new-tag">新</span>' : "";
+      const badgeTxt = isCore?'核心唯一':b.kind==="fused"?'融合':b.kind==="func"?'功能':'基础';
+      const isNew = (!built && e===G.era && vis[vis.length-1]===b && !G._seenCard[b.id]);
       if(!built && e===G.era && vis[vis.length-1]===b) G._seenCard[b.id]=true;
       // 只展示当前效果，不展示 Lv3/Lv5 未来效果
       const effect = b.effect;
+      const chainHtml = (function(){ const cs=chainState(b.id); if(!cs) return ''; return '<div class="bd-line muted'+(cs.n>0?' fed':'')+'">链· '+(cs.n>0?'✓ ':'○ ')+cs.name+(cs.bonus>0?' +'+Math.round(cs.bonus*100)+'%':' 缺供')+'</div>'; })();
       const cardCls = "build-card"+(built?" built":"")+(ready?" ready":canBuild?" wait":"")+(unlocked?"":" locked-card")+(b.kind==="fused"?" fused-card":"")+(canBuild?" clickable":"");
-      const cardAttrs = canBuild ? ' data-bid="'+b.id+'" data-act="build" data-id="'+b.id+'" title="点击建造"' : ' data-bid="'+b.id+'"';
+      const cardAttrs = canBuild ? ' data-bid="'+b.id+'" data-act="build" data-id="'+b.id+'"' : ' data-bid="'+b.id+'"';
+      const detail =
+        '<div class="bd-head">'+b.n+(built?' · Lv'+s.lv+(built&&!isCore?' ×'+s.count:''):'')+(isNew?'<span class="new-tag">新</span>':'')+'</div>'+
+        '<div class="bd-line muted">'+badgeTxt+'</div>'+
+        '<div class="bd-line">'+effect+'</div>'+
+        chainHtml+
+        (built?'':'<div class="bd-line muted">建造：'+costStr(cost)+'</div>')+
+        '<div class="bd-foot">'+(unlocked?(canBuild?(ready?'点击建造':'可建造'):'核心唯一'):'前置未完成 · ……')+'</div>';
       html += '<div class="'+cardCls+'"'+cardAttrs+'>'+
-        '<div class="bbody">'+
-        '<div class="brow"><span class="bicon'+(built?' anim-flame':'')+'">'+b.i+'</span><span class="bname">'+b.n+'</span>'+(built&&!isCore?'<span class="count-tag">×'+s.count+'</span>':'')+lvtag+newTag+badge+'</div>'+
-        '<div class="beffect">'+effect+'</div>'+
-        (function(){ const cs=chainState(b.id); if(!cs) return ''; return '<div class="chain-line'+(cs.n>0?' fed':'')+'">链· '+(cs.n>0?'✓ ':'○ ')+cs.name+(cs.bonus>0?' +'+Math.round(cs.bonus*100)+'%':' 缺供')+'</div>'; })()+
-        '<div class="brow brow-act"><span class="bcost">'+(built?"":("建:"+costStr(cost)))+'</span><span class="bact">'+(unlocked?'':'<span class="bstatus">……</span>')+'</span></div>'+
-        '</div></div>';
+        '<div class="bface"><span class="bicon'+(built?' anim-flame':'')+'">'+b.i+'</span><span class="bname">'+b.n+'</span></div>'+
+        '<div class="bdetail">'+detail+'</div>'+
+        '</div>';
     });
     html += '</div></div>';
   });
@@ -1635,19 +1654,21 @@ function renderRoster() {
   const el = document.getElementById("rosterArea");
   let html = '';
   // ===== 普通士兵：数字计数、按数量招募、有战死 =====
-  html += '<div class="sect-title">士兵 · 数字编制（'+troopCount()+' 人 · 有战死）</div>';
+  const tcap = troopCap(), tused = troopCount(), tfull = tused>=tcap;
+  html += '<div class="sect-title">士兵 · 数字编制（'+tused+' / '+tcap+' 人 · 有战死）</div>';
+  html += '<div style="font-size:11px;color:var(--text-secondary);margin-bottom:5px">营地容量由帐篷营地决定：每座 '+Math.round(campCapPer())+' 人（营地升级后 +50%）。当前 '+(G.B.tent&&G.B.tent.count||0)+' 座营地'+(tfull?' · 已招满，需再建营地':'')+'。</div>';
   UNIT_ORDER.forEach(uid=>{
     const u = UNITS[uid];
     if(!G.unitUnlocked[uid]) return;
     const cnt = G.troops[uid]||0;
-    const batchBtns = TROOP_BATCH.map(n=>'<button class="btn-small" data-recruit-troop="'+uid+'" data-act="troop" data-id="'+uid+'" data-n="'+n+'">+'+n+'</button>').join('');
+    const batchBtns = TROOP_BATCH.map(n=>'<button class="btn-small"'+(tfull?' disabled':'')+' data-recruit-troop="'+uid+'" data-act="troop" data-id="'+uid+'" data-n="'+n+'">+'+n+'</button>').join('');
     html += '<div class="unit-card">'+
       '<h4 style="margin:0 0 2px;font-size:13px">'+u.n+' <span style="color:var(--text-muted);font-weight:normal">战力'+u.power+' · 在役 '+cnt+'</span></h4>'+
       '<div style="font-size:11px;color:var(--text-muted)">单价：'+costStr(u.cost)+'</div>'+
       '<div style="display:flex;gap:4px;flex-wrap:wrap">'+batchBtns+'</div>'+
       '</div>';
   });
-  if(troopCount()===0) html += '<div class="empty-hint">士兵是数字编制，成批招募、战死会减员。先招募一批守住营地。</div>';
+  if(troopCount()===0) html += '<div class="empty-hint">士兵是数字编制，成批招募、战死会减员。先建帐篷营地，再招募一批守住营地。</div>';
 
   // ===== 英雄：个体、无上限、8装备、5品级、不死 =====
   html += '<div class="sect-title">英雄（'+G.soldiers.length+' 位 · 永不战死，重伤疗养）</div>';

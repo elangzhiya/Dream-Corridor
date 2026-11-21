@@ -63,7 +63,7 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .resrow .rline { display:flex; align-items:center; gap:6px; position:relative; z-index:1; }
 .resrow .ricon { font-size:12px; font-weight:bold; width:18px; height:18px; flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; background:var(--blue-light); color:var(--blue); border-radius:4px; }
 .resrow .rname { font-size:12px; color:var(--text-secondary); flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.resrow .rval { font-size:15px; font-weight:bold; color:var(--text); min-width:44px; text-align:right; font-variant-numeric:tabular-nums; } display:inline-block;
+.resrow .rval { font-size:15px; font-weight:bold; color:var(--text); min-width:44px; text-align:right; font-variant-numeric:tabular-nums; display:inline-block; }
 @keyframes numUp { 0%{color:var(--green);transform:translateY(-2px)} 100%{color:var(--text);transform:none} }
 @keyframes numDown { 0%{color:var(--red);transform:translateY(2px)} 100%{color:var(--text);transform:none} }
 .resrow .rval.numup { animation:numUp .6s ease-out; }
@@ -132,9 +132,9 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .kind-head { display:flex; align-items:center; gap:7px; margin:2px 0 6px; font-size:12px; font-weight:bold; color:var(--text-secondary); letter-spacing:1px; }
 .kind-head::after { content:""; flex:1; height:1px; background:var(--border); }
 .kind-head .dot { width:7px; height:7px; border-radius:2px; flex-shrink:0; }
-.build-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(252px,1fr)); gap:9px; }
+.build-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:9px; width:100%; }
 /* 建筑卡：低饱和、浅底、细边框（参考 Epoch-Restart） */
-.build-card { background:var(--panel); border:1px solid #e1e5e9; border-radius:8px; overflow:hidden; transition:border-color .15s ease,background .15s ease,box-shadow .15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.04); position:relative; }
+.build-card { background:var(--panel); border:1px solid #e1e5e9; border-radius:8px; overflow:hidden; transition:border-color .15s ease,background .15s ease,box-shadow .15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.04); position:relative; min-width:0; }
 .build-card:hover { border-color:#b0c4d8; background:#f5f7fa; }
 .build-card.clickable { cursor:pointer; }
 /* 点击反馈：按下瞬间下压 + 建成闪光 */
@@ -152,20 +152,20 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .bbody { padding:7px 10px 8px; }
 .new-tag { font-size:10px; color:#fff; background:var(--blue); border-radius:3px; padding:0 4px; margin-left:3px; }
 .brow { display:flex; align-items:center; gap:5px; min-width:0; }
-.brow-act { margin-top:5px; }
+.brow-act { margin-top:5px; flex-wrap:wrap; row-gap:4px; }
 .bicon { font-size:13px; font-weight:bold; line-height:1; flex-shrink:0; width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; background:#f0f3f6; color:#5a6a7a; border-radius:5px; border:1px solid #e6ebf0; }
 .build-card.built .bicon, .build-card.glory-card.built .bicon { background:#eaf5ea; color:#5a8f6b; border-color:#d5e7d9; }
-.bname { font-size:14px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.bname { font-size:14px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
 .badge { font-size:11px; padding:1px 5px; border-radius:3px; margin-left:auto; white-space:nowrap; flex-shrink:0; background:#f0f3f6; color:#6b7a89; border:1px solid #e6ebf0; }
 .badge-core { background:#edf3f8; color:#4a7fa5; border-color:#dce8f1; }
 .badge-basic { background:#f2f5f3; color:#5a8f6b; border-color:#dce8de; }
 .badge-func { background:#f2f4f7; color:#60748a; border-color:#e0e6ed; }
 .badge-fused { background:#f2f3f8; color:#737fa5; border-color:#e2e5f0; }
 .lvtag { font-size:11px; color:#6b7a89; background:#f0f3f6; border:1px solid #e6ebf0; padding:0 5px; border-radius:3px; white-space:nowrap; flex-shrink:0; }
-.beffect { font-size:12px; color:var(--text-secondary); margin-top:2px; line-height:1.4; }
-.chain-line { font-size:11px; color:#9aa4ae; margin-top:1px; line-height:1.3; }
+.beffect { font-size:12px; color:var(--text-secondary); margin-top:2px; line-height:1.4; overflow-wrap:anywhere; }
+.chain-line { font-size:11px; color:#9aa4ae; margin-top:1px; line-height:1.3; overflow-wrap:anywhere; }
 .chain-line.fed { color:#5d8f6a; }
-.bcost { font-size:12px; color:var(--text-muted); white-space:nowrap; }
+.bcost { font-size:12px; color:var(--text-muted); min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .bact { margin-left:auto; display:flex; align-items:center; gap:4px; }
 .bstatus { font-size:12px; color:var(--text-muted); white-space:nowrap; }
 .build-card button { padding:3px 10px; border:1px solid var(--blue); border-radius:4px; cursor:pointer; font-size:13px; background:var(--blue-light); color:var(--blue); transition:.1s; user-select:none; white-space:nowrap; }
@@ -1559,7 +1559,9 @@ function renderBuild() {
       if(!built && e===G.era && vis[vis.length-1]===b) G._seenCard[b.id]=true;
       // 只展示当前效果，不展示 Lv3/Lv5 未来效果
       const effect = b.effect;
-      html += '<div class="build-card'+(built?" built":"")+(ready?" ready":canBuild?" wait":"")+(unlocked?"":" locked-card")+(b.kind==="fused"?" fused-card":"")+(canBuild?' clickable" data-bid="'+b.id+'" data-act="build" data-id="'+b.id+'" title="点击建造':'" data-bid="'+b.id+'"')+'>'+
+      const cardCls = "build-card"+(built?" built":"")+(ready?" ready":canBuild?" wait":"")+(unlocked?"":" locked-card")+(b.kind==="fused"?" fused-card":"")+(canBuild?" clickable":"");
+      const cardAttrs = canBuild ? ' data-bid="'+b.id+'" data-act="build" data-id="'+b.id+'" title="点击建造"' : ' data-bid="'+b.id+'"';
+      html += '<div class="'+cardCls+'"'+cardAttrs+'>'+
         '<div class="bbody">'+
         '<div class="brow"><span class="bicon'+(built?' anim-flame':'')+'">'+b.i+'</span><span class="bname">'+b.n+'</span>'+(built&&!isCore?'<span class="count-tag">×'+s.count+'</span>':'')+lvtag+newTag+badge+'</div>'+
         '<div class="beffect">'+effect+'</div>'+

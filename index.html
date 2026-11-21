@@ -225,6 +225,25 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .unit-card,.land-card,.res-card { background:var(--panel); border:1px solid var(--border); border-radius:5px; padding:7px 8px; margin-bottom:6px; box-shadow:var(--shadow); }
 .land-card.liberated { border-color:#b8d8b8; background:var(--green-light); }
 .land-card.locked { opacity:0.5; }
+/* 异世界世界地图 */
+.worldmap{position:relative;width:100%;height:470px;background:linear-gradient(160deg,#fbfdff 0%,#f4f8ff 55%,#f7fbf7 100%);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow);}
+.wz{position:absolute;font-size:10px;letter-spacing:3px;color:#9aa8b8;pointer-events:none;}
+.maplines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+.maplines line{stroke:#cdd9e6;stroke-width:.3;stroke-dasharray:1.2 1.2;}
+.maplines line.done{stroke:#5aa86a;stroke-dasharray:none;stroke-width:.45;}
+.mnode{position:absolute;transform:translate(-50%,-50%);width:78px;min-height:38px;background:#fff;border:1px solid var(--border);border-radius:7px;box-shadow:0 2px 6px rgba(30,50,80,.08);text-align:center;padding:4px 3px;z-index:2;user-select:none;}
+.mnode .mn-n{display:block;font-size:11px;font-weight:600;line-height:1.25;}
+.mnode .mn-p{display:block;font-size:10px;color:var(--text-muted);margin-top:2px;}
+.mnode.done{border-color:#8fc49a;background:#f0faf1;}
+.mnode.done .mn-p{color:#4f9a62;}
+.mnode.open{border-color:#7ba9e0;background:#f2f7ff;cursor:pointer;}
+.mnode.open:hover{transform:translate(-50%,-50%) scale(1.08);box-shadow:0 5px 14px rgba(40,80,140,.18);z-index:5;}
+.mnode.lock{opacity:1;background:#fafbfd;border-color:#e3e8ef;box-shadow:none;}
+.mnode.lock .mn-n{color:#6b7a8d;}
+.mnode.lock .mn-p{color:#aab4c0;}
+.mnode.now{border-color:var(--gold);box-shadow:0 0 0 2px rgba(220,170,60,.25);}
+.map-status{margin-top:8px;text-align:center;font-size:11px;color:var(--text-secondary);}
+.map-status b{color:var(--blue);font-weight:600;}
 .soldier-card { background:var(--panel); border:1px solid var(--border); border-radius:5px; padding:6px 8px; margin-bottom:5px; display:flex; align-items:center; gap:7px; }
 .soldier-card.healing { border-color:var(--yellow); background:var(--yellow-light); }
 .soldier-card.patroling { border-color:#b8d8b8; }
@@ -480,7 +499,7 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
       <button class="maintab active"data-tab="build"onclick="switchMainTab('build')"> 建造</button>
       <button class="maintab"data-tab="research"onclick="switchMainTab('research')"> 研究</button>
       <button class="maintab"data-tab="roster"onclick="switchMainTab('roster')"> 士兵</button>
-      <button class="maintab"data-tab="lands"onclick="switchMainTab('lands')"> 故土</button>
+      <button class="maintab"data-tab="lands"onclick="switchMainTab('lands')"> 异世界</button>
     </div>
     <div class="mainview active"id="viewBuild"><div id="buildArea"></div><div id="doorArea"></div></div>
     <div class="mainview"id="viewResearch"><div id="researchArea"></div></div>
@@ -611,7 +630,7 @@ function autoEquip(hero, drop){
   return false;
 }
 
-// ---------- 土地定义（十二块故土） ----------
+// ---------- 异世界定义（二十处，逐层征战） ----------
 const LANDS = [
   { name:"荒村田垄",zone:"边缘",power:15,cost:{food:10},reward:{seed:6,belief:30,build:50},landRate:{seed:1},lore:"第一垄绿",loreText:"陶罐里的种核还活着。第七天早上田里冒出一点绿，五个人蹲在田埂上看了整整一个早晨。领队说：「够了，这就够我们活下去了。」",set:"教程关。垄沟里翻出装着种核的陶罐——这个世界的春天没死透"},{ name:"旧城苗圃",zone:"边缘",power:40,cost:{food:30,belief:20,seed:5},reward:{seed:12,belief:80,food:60},landRate:{seed:1},lore:"褪色的秩序",loreText:"苗房记录写着：「今年花没有开。不是枯了——是没开。」褪色是秩序：先是不能生长，再是不能改变，最后是不能记得。",set:"苗床还在，种子罐没开封——这个世界欠自己的春天，从这里还起"},{ name:"街心花园",zone:"边缘",power:110,cost:{food:50,belief:50},reward:{belief:80,food:40},landRate:{},lore:"等春天的人",loreText:"站桩死者守着花坛几十年。远征队把花坛原来的名字重新刻上小碑——第二天，他朝花坛挪了半步。",set:"站桩死者守着花坛不动。把花坛原来的名字重新刻上小碑，他就挪了半步"},{ name:"河湾平地",zone:"腹地",power:150,cost:{food:100,belief:100},reward:{food:200,iron:15,belief:200},landRate:{iron:1},lore:"大地的心跳",loreText:"守夜的人说，土地深处偶尔能听见极远、极沉的声响——像这片大地缓慢的心跳重新开始。灰铁在湾底沉成层，世界正在把自己重新记起来。",set:"河还没褪色，湾里的土是湿的。河床冲下来的灰铁在湾底沉成层"},{ name:"旧镇广场",zone:"腹地",power:500,cost:{food:200,belief:200,iron:10},reward:{build:300,iron:10,belief:400,crystal:5},landRate:{crystal:1},lore:"刻字的砖",loreText:"广场地砖下翻出旧城的界碑：「此处为第七区边界，立碑为证。」落款的名字后面刻着一行小字：「勿忘」。他们没忘，只是被忘掉了。",set:"广场中央聚集的灰体群——第一次要打硬仗。广场地砖下开始凝出壤晶"},{ name:"褪色之心",zone:"深处",power:1600,cost:{food:600,belief:600,iron:40},reward:{belief:2000,crystal:15},landRate:{crystal:1},lore:"世界停止褪色",loreText:"第六块地开垦完那天，田里的绿连成片，褪色停了——旧文明记录里这叫「不可能」。",set:"世界褪色最重处，无具体形态，纯氛围战。收复后田里的绿连成片，褪色停了"},
   { name:"灰烬车站",zone:"深处",power:2800,cost:{food:300,belief:300,iron:30},reward:{belief:1200,build:600,relics:5},landRate:{relics:1},lore:"最后一班车",loreText:"站台电子牌还亮着，滚动的终点站名字已经褪成一排横线。列车没有来过，但有人一直在等——等到自己也站成了站牌。",set:"锈轨穿过候车厅，售票窗口里卡着半张没撕完的车票"},
@@ -619,12 +638,32 @@ const LANDS = [
   { name:"静默医院",zone:"深处",power:8000,cost:{food:700,belief:700,chem:30},reward:{belief:3000,tissue:20,crystal:30},landRate:{tissue:1},lore:"病历上的人",loreText:"病历写着：「患者拒绝被遗忘。」后面一整页只有这一行，反复写了几百遍。字迹越来越淡，最后一笔却很重——像是用尽全部力气留下的。",set:"病房门牌整齐排列，每个房间都空着，只有病历还摊在床上"},
   { name:"旧世界电台",zone:"核心",power:12000,cost:{food:1000,belief:1000,chip:30},reward:{belief:4500,relics:20,crystal:50},landRate:{relics:2},lore:"还在播的声音",loreText:"电台在无人值守的情况下播了几十年。内容是天气、农时、和一段反复播放的童谣。褪色带走了听众，没带走节目——世界忘记了怎么听，没忘记怎么唱。",set:"发射塔顶端还亮着红灯，控制室的磁带机转到最后一圈"},
   { name:"环形城墙",zone:"核心",power:18000,cost:{food:1500,belief:1500,alloy:50},reward:{belief:7000,crystal:100,superF:10},landRate:{crystal:3},lore:"围城的尽头",loreText:"城墙是旧文明最后围起来的地方。墙内的人以为守住了文明，墙外的人以为守住了自由。灰体来的时候，两边才明白——他们守的其实是同一个东西。",set:"墙面上刻满名字，最上面一行是：「留给后来者」"},
-  { name:"褪色之眼",zone:"核心",power:26000,cost:{food:2200,belief:2200,nuclear:15},reward:{belief:12000,relics:50,crystal:150},landRate:{relics:3},lore:"世界的瞳孔",loreText:"站在这里能看见整片灰壤的褪色边界，像一道缓慢收拢的光圈。领队说：我们不是来打败它的，是来让它看见——这里还有人在。",set:"没有建筑，没有灰体群，只有一片缓慢旋转的灰。远征队站进去，像站进世界的眼睛"}
+  { name:"褪色之眼",zone:"核心",power:26000,cost:{food:2200,belief:2200,nuclear:15},reward:{belief:12000,relics:50,crystal:150},landRate:{relics:3},lore:"世界的瞳孔",loreText:"站在这里能看见整片灰壤的褪色边界，像一道缓慢收拢的光圈。领队说：我们不是来打败它的，是来让它看见——这里还有人在。",set:"没有建筑，没有灰体群，只有一片缓慢旋转的灰。远征队站进去，像站进世界的眼睛"},
+  { name:"倒影港",zone:"核心",power:34000,cost:{food:2600,belief:2600,alloy:60,relics:20},reward:{belief:15000,relics:40,crystal:120},landRate:{relics:3},lore:"水中的另一座城",loreText:"港口的水面比天空更亮。倒影里的城有人走动，岸上却没有。远征队把一块碑石推进水里，倒影里的城门开了一道缝。",set:"海面上浮着一座倒过来的城，潮水涨时城门露出水面"},
+  { name:"零号灯塔",zone:"核心",power:42000,cost:{food:3200,belief:3200,glassF:20},reward:{belief:18000,crystal:150,glassF:10},landRate:{glassF:1},lore:"第一束没有影子的光",loreText:"灯塔的光照在身上没有影子。守塔人说，这里的光还没学会照出影子——它只负责让人看见路。",set:"塔顶的光是白色的，照亮处没有阴影，灰体在光里站得笔直"},
+  { name:"镜中城",zone:"彼岸",power:52000,cost:{food:4000,belief:4000,crystal:200},reward:{belief:22000,relics:60,crystal:200},landRate:{relics:4},lore:"两个自己",loreText:"城里每个人都有一个反着走的自己。他们互相否认，谁也活不成。远征队做的第一件事是给每个人命名——命名之后，两个影子合成了一个人。",set:"街道上每个人都在和自己的倒影擦肩而过，双方都装作没看见"},
+  { name:"无声剧场",zone:"彼岸",power:65000,cost:{food:5000,belief:5000,relics:60},reward:{belief:26000,relics:80,superF:10},landRate:{relics:4},lore:"演了很久的戏",loreText:"剧场里没有声音，演员却还在演。剧本最后一页写着：「观众会回来的。」他们不知道观众早就走了，只是还在演。",set:"幕布半垂，演员保持着谢幕的姿势，座位上落满灰"},
+  { name:"星坠原",zone:"彼岸",power:80000,cost:{food:6500,belief:6500,nuclear:20},reward:{belief:32000,crystal:300,nuclear:10},landRate:{crystal:4},lore:"天空掉下来的东西",loreText:"原野上散落着发烫的黑石，是很多年前从天上掉下来的。灰体不肯靠近，远征队把黑石一块块搬开，露出下面的土——土是温的。",set:"黑色陨坑排成一列，坑底有微弱的光在脉动"},
+  { name:"记忆回廊",zone:"彼岸",power:100000,cost:{food:8000,belief:8000,superF:20},reward:{belief:40000,polyF:20,crystal:350},landRate:{superF:2},lore:"走过的都还在",loreText:"走廊两侧挂满画，画的是远征队自己走过的路。有些路他们还没走过，画却已经挂在那里了。领队说：别看太久了。",set:"两侧墙上挂满未干油画，画里是这支队伍还没到达的地方"},
+  { name:"世界尽头",zone:"彼岸",power:130000,cost:{food:10000,belief:10000,nuclear:40,relics:100},reward:{belief:50000,relics:120,crystal:500},landRate:{relics:5},lore:"路到这里为止",loreText:"尽头没有墙，只有一条很细的线。线的那边什么都没有——连褪色都没有。远征队在线前坐下，把名字一个一个念了一遍。",set:"地面裂开一道笔直的缝，缝里是纯粹的空白，没有光也没有暗"},
+  { name:"门后之地",zone:"彼岸",power:180000,cost:{food:13000,belief:13000,superF:40,glassF:30},reward:{belief:70000,nuclear:30,crystal:800,superF:30},landRate:{nuclear:2},lore:"推门之后",loreText:"门后不是另一个世界，是这个世界还没褪色的样子。树是绿的，水是清的，有人在没有影子的光里喊他们的名字。领队把门推开了。",set:"门后是一片完整的旧世界，绿得像一个还没做完的梦"}
+];
+// 世界地图：节点坐标（百分比）与推进连线
+const LAND_POS = [
+  [10,17],[23,10],[15,29],[33,31],[29,45],[43,53],[51,43],[57,59],[49,71],
+  [65,32],[71,49],[65,64],[80,19],[89,30],[78,43],[90,53],[77,69],[87,76],[73,87],[93,89]
+];
+const MAP_LINKS = [
+  [0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8],[8,9],[9,10],[10,11],
+  [11,12],[12,13],[13,14],[14,15],[15,16],[16,17],[17,18],[18,19],
+  [2,4],[4,7],[8,11],[11,14],[15,17]
 ];
 // 巡逻缴获模板（按地块深度）
 const PATROL_LOOT = [
   {food:6,belief:6},{food:8,seed:2},{belief:12,build:6},{iron:2,food:10},{iron:2,crystal:1,build:12},{crystal:2,belief:30},
-  {relics:1,belief:40},{chem:3,belief:60},{tissue:2,belief:80},{relics:2,belief:120},{crystal:4,belief:180},{relics:3,crystal:5,belief:260}
+  {relics:1,belief:40},{chem:3,belief:60},{tissue:2,belief:80},{relics:2,belief:120},{crystal:4,belief:180},{relics:3,crystal:5,belief:260},
+  {food:1400,belief:280},{relics:4,belief:320},{relics:4,crystal:8,belief:380},{superF:1,belief:460},
+  {nuclear:1,belief:560},{crystal:12,belief:680},{relics:6,crystal:16,belief:820},{nuclear:2,relics:8,belief:1000}
 ];
 
 // ---------- 研究定义（26 项） ----------
@@ -638,7 +677,7 @@ const RESEARCH = [
   { id:"up_sentry3",era:1,n:"巡逻半径",t:240,cost:{belief:90,food:50},pre:["sentryry"],up:{b:"sentry",lv:3},d:"武装哨所 → 巡逻哨塔 · 巡逻战力 +10%"},
   { id:"up_furnace3",era:2,n:"合金配比",t:420,cost:{belief:180,food:90},pre:["forging"],up:{b:"furnace",lv:3},d:"熔炉 → 合金熔炉 · 钢铁产率 +30%"},
   { id:"up_barracks3",era:2,n:"营房扩建",t:360,cost:{belief:160,food:90},pre:[],up:{b:"barracks",lv:3},d:"营房 → 扩展营房 · 医疗扩容"},
-  { id:"up_academy3",era:2,n:"研究编组",t:480,cost:{belief:200,food:100},pre:[],up:{b:"academy",lv:3},d:"研究院 → 研究学院 · 研究队列 +1"},
+  { id:"up_academy3",era:2,n:"研究编组",t:480,cost:{belief:200,food:100},pre:[],up:{b:"academy",lv:3},d:"研究院 → 研究学院 · 研究即时完成"},
   { id:"up_tent5",era:2,n:"军事学院",t:600,cost:{belief:240,food:120},pre:["up_tent3"],up:{b:"tent",lv:5},d:"帐篷营地 → 加固营地 · 新兵入队即 Lv2"},
   { id:"up_sentry5",era:2,n:"碉堡化",t:600,cost:{belief:240,food:120},pre:["up_sentry3"],up:{b:"sentry",lv:5},d:"武装哨所 → 巡逻哨塔 · 阵亡概率减半"},
   { id:"up_field5",era:3,n:"自动化农场",t:720,cost:{belief:340,food:160},pre:["firectrl","up_field3"],up:{b:"field",lv:5},d:"田垄采集点 → 轮作田垄 · 粮产 ×3"},
@@ -739,7 +778,7 @@ function checkStory() {
 }
 
 const ERAS = [
-  { n:"T1 农耕纪元",icon:"",gate:null,gateDesc:"开局"},{ n:"T2 铁工纪元",icon:"",gate:"academy",gateDesc:"收复河湾平地 → 建灰铁矿场攒灰铁 → 建成研究院"},{ n:"T3 电气纪元",icon:"",gate:"t3",gateDesc:"熔炉 ×3 + 钢铁存量 ≥ 200"},{ n:"T4 融合纪元",icon:"",gate:"t4",gateDesc:"收复旧镇广场 + 建成融合研究院"},{ n:"T5 核能纪元",icon:"",gate:"t5",gateDesc:"融合建筑（灯塔/停滞仓/共鸣塔）×2 + 壤晶 ≥ 500"}
+  { n:"T1 农耕纪元",icon:"",gate:null,gateDesc:"开局"},{ n:"T2 铁工纪元",icon:"",gate:"academy",gateDesc:"征战河湾平地 → 建灰铁矿场攒灰铁 → 建成研究院"},{ n:"T3 电气纪元",icon:"",gate:"t3",gateDesc:"熔炉 ×3 + 钢铁存量 ≥ 200"},{ n:"T4 融合纪元",icon:"",gate:"t4",gateDesc:"征战旧镇广场 + 建成融合研究院"},{ n:"T5 核能纪元",icon:"",gate:"t5",gateDesc:"融合建筑（灯塔/停滞仓/共鸣塔）×2 + 壤晶 ≥ 500"}
 ];
 
 const WorldTabs = [
@@ -756,7 +795,7 @@ function freshState() {
       belief:12,build:8,food:6,iron:0,seed:0,crystal:0,steel:0,alloy:0,chem:0,power:0,ammo:0,concrete:0,plastic:0,optics:0,chip:0,carbon:0,magnet:0,nuclear:0,glassF:0,polyF:0,superF:0,relics:0,tissue:0
     }).map(([k,v])=>[k,v*S])),era:1,time:0,glory:0,gloryIdle:false,matrixOn:false,gridOn:false,B:{},// 建筑状态 {count,lv}
     R:{},// 研究 {done:bool,prog:0}
-    queue:[],// 研究队列 [id,...]
+    queue:[],// 兼容旧存档：曾排队的研究（启动即补完）
     lands:LANDS.map((l,i)=>({ liberated:false,locked:i>0,patrol:[] })),soldiers:[],troops:{},nextSid:1,honorWall:[],scrollPages:[],unread:0,log:[],loreShown:{},storyShown:{},firstBuilt:{},unitUnlocked:{},expedition:null,// {land,ids,t}
     offlineNote:""};
 }
@@ -973,14 +1012,14 @@ function showModal(title,html,btns) {
 function closeModal(){ document.getElementById("modalBg").classList.remove("show"); }
 function showHelp(){
   showModal("玩法说明（V8）","<div class='mtext'>"+
-  "【目标】收复六处故土 → 建成信标 → 荣光 ≥ 阈值 → 建门廊枢纽 → 推门换门。\n"+
-  "【建造】无槽位限制，点击即完成。约束 = 资源指数上浮 + 科技纪元 + 故土收复。\n"+
+  "【目标】征战二十处异世界 → 建成信标 → 荣光 ≥ 阈值 → 建门廊枢纽 → 推门换门。\n"+
+  "【建造】无槽位限制，点击即完成。约束 = 资源指数上浮 + 科技纪元 + 异世界征战。\n"+
   "【升级】建筑不再单独升级，也不显示等级。研究对应的工艺科技后，建筑会换上新名字，之后新建的同类型建筑也沿用该名字。\n"+
   "【纪元】农耕→铁工→电气→融合→核能，每纪元解锁新建筑/新兵种。\n"+
   "【士兵】两套：①数字编制——按数量成批招募，无名字无等级，战死会减员，进荣誉墙（每10人信念+1/s 永久）；招募上限由帐篷营地决定：每座营地容纳 10 人，营地升级后 +50%，需建营地才能招兵；②英雄——只有「招募英雄」一种，不分职业，最多同时拥有 10 名，有名字/等级/经验/血量，造价×3，重伤只疗养，自带8装备槽。\n"+
   "【信念】异世界的补给：产出有限，士兵、英雄、每座建筑都会持续消耗信念来维持；保持正收益才能养得起大军。\n"+
   "【装备】武器/头盔/护甲/战靴/护手/披风/护符/指环 8 槽，5 档品级以颜色区分（战力×1/1.6/2.5/4/6.5）。英雄巡逻与出征自动打怪，掉落品级越好越靠深处，自动换上更优装备。\n"+
-  "【科研】在研究页开展研究，耗时分钟~小时级；融合链素材靠战斗缴获。\n"+
+  "【科研】在研究页开展研究，点击即完成；融合链素材靠战斗缴获。\n"+
   "【存档】每5秒自动存档，离线最长12小时按效率补算。</div>");
 }
 
@@ -1350,7 +1389,6 @@ function checkEra() {
 }
 
 // ---------- 研究 ----------
-function researchSlots(){ return (G.B.academy && G.B.academy.lv>=3)?2:1; }
 function startResearch(id) {
   const r = RESEARCH.find(x=>x.id===id);
   if(!r || G.R[id].done) return;
@@ -1359,45 +1397,38 @@ function startResearch(id) {
     const b = BUILDINGS.find(x=>x.id===r.up.b);
     if(!G.B[r.up.b] || G.B[r.up.b].count===0){ showToast("需先建成"+(b?b.n:"对应建筑"),"error"); return; }
   }
-  if(G.queue.length>=researchSlots()){ showToast("研究进行中","error"); return; }
   if(r.pre.includes("anyFusion")){ if(!["fade","sync","reson"].some(x=>hasRes(x))){ showToast("前置：任一融合链研究","error"); return; } }
   else for(const p of r.pre){ if(!hasRes(p)){ showToast("前置："+RESEARCH.find(x=>x.id===p).n,"error"); return; } }
   if(!canAfford(r.cost)){ showToast("研究资源不足","error"); return; }
-  if(G.queue.includes(id)) return;
   payCost(r.cost);
-  G.queue.push(id);
-  addLog("开始研究："+r.n);
-  if(cheatOn()) tickResearch(); // 作弊模式：立即完成
+  finishResearch(id);
   renderAllPanels();
 }
-function tickResearch() {
-  if(G.queue.length===0) return;
-  const finished = [];
-  G.queue.forEach(id=>{
-    const r = RESEARCH.find(x=>x.id===id);
-    G.R[id].prog += cheatOn() ? r.t : 1;
-    if(G.R[id].prog >= r.t) finished.push(id);
-  });
-  finished.forEach(id=>{
-    const r = RESEARCH.find(x=>x.id===id);
-    G.R[id].done = true; G.R[id].prog = 0;
-    G.queue = G.queue.filter(x=>x!==id);
-    addLog("研究完成："+r.n,"good");
-    showToast("研究完成："+r.n,"success");
-    addScrollPage("discover","研究完成："+r.n,r.d);
-    if(r.up){
-      const b = BUILDINGS.find(x=>x.id===r.up.b), s = G.B[r.up.b];
-      if(s && s.count>0){
-        const oldName = b?buildingName(b,s.lv):(r.up.b);
-        s.lv = Math.max(s.lv,r.up.lv);
-        const newName = b?buildingName(b,s.lv):(r.up.b);
-        addLog(oldName+" 进化为 "+newName,"good");
-        showToast(newName+" 落成","success");
-      }
+function finishResearch(id){
+  const r = RESEARCH.find(x=>x.id===id);
+  if(!r) return;
+  G.R[id].done = true; G.R[id].prog = 0;
+  addLog("研究完成："+r.n,"good");
+  showToast("研究完成："+r.n,"success");
+  addScrollPage("discover","研究完成："+r.n,r.d);
+  if(r.up){
+    const b = BUILDINGS.find(x=>x.id===r.up.b), s = G.B[r.up.b];
+    if(s && s.count>0){
+      const oldName = b?buildingName(b,s.lv):(r.up.b);
+      s.lv = Math.max(s.lv,r.up.lv);
+      const newName = b?buildingName(b,s.lv):(r.up.b);
+      addLog(oldName+" 进化为 "+newName,"good");
+      showToast(newName+" 落成","success");
     }
-    syncUnitUnlocks();
-  });
-  if(finished.length>0) checkEra();
+  }
+  syncUnitUnlocks();
+  checkEra();
+}
+function tickResearch(){
+  // 兼容旧存档：之前排队中的研究直接补完（资源已扣）
+  if(!G.queue || G.queue.length===0) return;
+  const q = G.queue.slice(); G.queue = [];
+  q.forEach(id=>{ if(!G.R[id] || !G.R[id].done) finishResearch(id); });
 }
 
 // ---------- 士兵 ----------
@@ -1452,17 +1483,17 @@ function campPatrolTick() {
   const campers = G.soldiers.filter(s=>s.state==="idle");
   campers.forEach(s=>gainXp(s, 4+Math.floor(Math.random()*5)));
 }
-// 自动分兵：可战士兵按战力分散到已解放故土；强者优先派往更深处（经验/缴获更高），每块地都有人
+// 自动分兵：可战士兵按战力分散到已解放异世界；强者优先派往更深处（经验/缴获更高），每块地都有人
 function autoAssignPatrol() {
   const open = G.lands.reduce((a,l,i)=>{ if(l.liberated) a.push(i); return a; },[]);
-  if(!open.length) return; // 尚无已解放故土：全部留营地巡逻
+  if(!open.length) return; // 尚无已解放异世界：全部留营地巡逻
   // 收回营地/巡逻中的士兵统一重新分配（出征、疗养不动），便于随战力成长自动往后调
   const pool = G.soldiers.filter(s=>(s.state==="idle"||s.state==="patrol") && s.hp>=30);
   pool.forEach(s=>{ s.state="idle"; s.land=-1; });
   G.lands.forEach(l=>{ l.patrol=[]; });
   if(!pool.length) return;
   pool.sort((a,b)=>soldierPower(b)-soldierPower(a)); // 战力高的先分
-  // 从最深往浅轮流发放：强者先落到深处，且每块已解放故土都有巡逻队
+  // 从最深往浅轮流发放：强者先落到深处，且每块已解放异世界都有巡逻队
   let k = 0;
   while(k<pool.length){
     let placed = false;
@@ -1568,15 +1599,30 @@ function enterHeal(s){
 }
 
 // ---------- 出征 ----------
-function attackLand(lid) {
+// 自动远征：英雄带兵逐处推进；战力或资源不足时原地等待成长，不打无把握的仗
+function expeditionEstimate(){
+  const ready = G.soldiers.filter(s=>s.state==="idle"||s.state==="patrol");
+  return { count: ready.length + troopCount(), power: ready.reduce((s,x)=>s+soldierPower(x),0)*armyAura() + troopArmyPower() };
+}
+function autoExpedition(){
+  if(G.expedition || G.time%6!==0) return;
+  const idx = G.lands.findIndex(l=>!l.liberated && !l.locked);
+  if(idx<0) return;
+  if(G._lastConquest!==undefined && G.time-G._lastConquest<8) return;
+  const L = LANDS[idx], est = expeditionEstimate();
+  if(est.count<=0 || est.power < L.power*0.95) return;
+  if(!canAfford(L.cost)) return;
+  attackLand(idx, true);
+}
+function attackLand(lid, auto) {
   const l = G.lands[lid];
   const L = LANDS[lid];
   if(!l || l.liberated) return;
-  if(l.locked){ showToast("此处尚未开放","error"); return; }
-  if(G.expedition){ showToast("远征队尚在外","error"); return; }
-  if(!canAfford(L.cost)){ showToast("出征资源不足","error"); return; }
+  if(l.locked){ if(!auto) showToast("此处尚未开放","error"); return; }
+  if(G.expedition){ if(!auto) showToast("远征队尚在外","error"); return; }
+  if(!canAfford(L.cost)){ if(!auto) showToast("出征资源不足","error"); return; }
   const ready = G.soldiers.filter(s=>s.state==="idle"||s.state==="patrol");
-  if(ready.length===0 && troopCount()===0){ showToast("没有可战士兵，先招募","error"); return; }
+  if(ready.length===0 && troopCount()===0){ if(!auto) showToast("没有可战士兵，先招募","error"); return; }
   payCost(L.cost);
   ready.forEach(s=>{ const l=G.lands[s.land]; if(l) l.patrol=l.patrol.filter(id=>id!==s.id); });
   // 弹药检查：没弹药枪就是烧火棍（火器威力减半）
@@ -1587,7 +1633,7 @@ function attackLand(lid) {
   G.expedition = { land:lid,ids:ready.map(s=>s.id),t:3,ammoOk };
   const forceN = ready.length + troopCount();
   addLog("出征："+L.name+"（英雄"+ready.length+" · 士兵"+troopCount()+"）");
-  showToast("出征中："+L.name,"success");
+  if(!auto) showToast("出征中："+L.name,"success");
   addScrollPage("combat","出征："+L.name,L.set+"\n\n"+L.lore+"\n远征队向"+L.name+"进发。兵力："+forceN+"（英雄"+ready.length+"/士兵"+troopCount()+"） / 敌方战力："+L.power+(ammoOk?"":"\n 弹药不足，火器威力减半！"));
   if(cheatOn()) resolveExpedition(); // 作弊模式：跳过行军等待
   renderAllPanels();
@@ -1609,12 +1655,12 @@ function resolveExpedition() {
   const where = L.name;
   squad.forEach(s=>{ s.state="idle"; });
   if(win) {
-    l.liberated = true; l.locked = false; l._next = 60;
+    l.liberated = true; l.locked = false; l._next = 60; G._lastConquest = G.time;
     Object.entries(L.reward).forEach(([k,v])=>{ G.res[k]=(G.res[k]||0)+v*S; });
     const g = 100 + lid*50;
     G.glory += g*S;
-    addLog(""+where+"收复！荣光+"+g,"good");
-    showToast(""+where+"收复！","success");
+    addLog(""+where+"征服！荣光+"+g,"good");
+    showToast(""+where+"征服！","success");
     loreDone("land"+lid);
     if(LANDS[lid+1]) G.lands[lid+1].locked = false;
     squad.forEach(s=>{ s.kills+=2; gainXp(s,40+Math.floor(Math.random()*40)); const drop=equipDrop(s.lv,lid); if(drop) autoEquip(s,drop); if(Math.random()<0.25 && G.B.sentry && G.B.sentry.lv<5){ s.hp-=15+Math.random()*25; if(s.hp<30) enterHeal(s); } });
@@ -1672,6 +1718,7 @@ function tick() {
     G.expedition.t -= 1;
     if(G.expedition.t<=0) resolveExpedition();
   }
+  autoExpedition();
   if(G.time===3 && !G.loreShown.start){ loreDone("start"); }
   checkStory();
   if(G.time%10===0) syncUnitUnlocks();
@@ -2047,29 +2094,43 @@ function renderRoster() {
   setHTML("rosterArea", html);
 }
 function renderLandsView() {
-  setHTML("landsArea", LANDS.map((L,i)=>{
-    const l = G.lands[i];
-    const costStrL = costStr(L.cost);
-    const rewardStrL = costStr(L.reward);
-    const rateStrL = Object.entries(L.landRate||{}).map(([k,v])=>RES[k].n+fmtRate(v*S)).join("·");
-    const pat = l.patrol.length;
-    let btns = "";
-    if(!l.liberated){
-      const readyN = G.soldiers.filter(s=>s.state==="idle"||s.state==="patrol").length + troopCount();
-      btns = '<button class="btn-small atk"'+(l.locked?' disabled':'')+' data-act="attack" data-i="'+i+'">'+(l.locked?'尚未开放':'全军出征（'+readyN+'人可战）')+'</button>';
-    } else {
-      btns = '';
-    }
-    const tip = L.set+(l.liberated&&rateStrL?' | 特产：'+rateStrL:'')+(l.liberated?' | 巡逻队 '+pat+' 人，自动驻守':' | 出征消耗：'+costStrL+' ｜ 缴获：'+rewardStrL);
-    return '<div class="land-card '+(l.liberated?'liberated':'')+' '+(l.locked?'locked':'')+'" title="'+tip+'">'+
-      '<h4 style="margin:0;font-size:13px">'+(i+1)+". "+L.name+' '+(l.liberated?'<span style="color:var(--green);font-size:11px">已收复</span>':'')+'</h4>'+
-      '<div style="font-size:11px;color:var(--text-muted);margin-top:2px">守军 '+L.power+(pat&&l.liberated?' · 驻守 '+pat:'')+'</div>'+
-      btns+'</div>';
-  }).join(''));
+  const done = G.lands.filter(l=>l.liberated).length;
+  const nextIdx = G.lands.findIndex(l=>!l.liberated && !l.locked);
+  let html = '<div class="sect-title">征战异世界 '+done+'/'+LANDS.length+'<span class="info-dot" title="英雄会带领士兵自动出征，逐处推进。点击已开放的节点可立即出征。">i</span></div>';
+  html += '<div class="worldmap">';
+  [["边缘",4,5],["腹地",22,25],["深处",40,35],["核心",60,13],["彼岸",74,62]].forEach(([n,x,y])=>{
+    html += '<div class="wz" style="left:'+x+'%;top:'+y+'%">'+n+'</div>';
+  });
+  html += '<svg class="maplines" viewBox="0 0 100 100" preserveAspectRatio="none">';
+  MAP_LINKS.forEach(([a,b])=>{
+    const p = LAND_POS[a], q = LAND_POS[b];
+    const lit = G.lands[a].liberated && G.lands[b].liberated;
+    html += '<line x1="'+p[0]+'" y1="'+p[1]+'" x2="'+q[0]+'" y2="'+q[1]+'"'+(lit?' class="done"':'')+'/>';
+  });
+  html += '</svg>';
+  LANDS.forEach((L,i)=>{
+    const l = G.lands[i], p = LAND_POS[i];
+    const cls = l.liberated?'done':(l.locked?'lock':'open');
+    const rateStr = Object.entries(L.landRate||{}).map(([k,v])=>RES[k].n+fmtRate(v*S)).join('·');
+    const tip = L.set+(l.liberated?' | 特产：'+rateStr+' | 巡逻 '+l.patrol.length+' 人':' | 守军 '+L.power+' | 消耗：'+costStr(L.cost)+' | 缴获：'+costStr(L.reward));
+    const now = (i===nextIdx && !G.expedition)?' now':'';
+    html += '<div class="mnode '+cls+now+'" style="left:'+p[0]+'%;top:'+p[1]+'%" title="'+tip+'"'+(cls==='open'?' data-act="attack" data-i="'+i+'"':'')+'>'+
+      '<span class="mn-n">'+L.name+'</span>'+
+      '<span class="mn-p">'+(l.liberated?'已征服':(l.locked?'未探明':L.power))+'</span></div>';
+  });
+  html += '</div>';
+  if(G.expedition){
+    html += '<div class="map-status">远征中：<b>'+LANDS[G.expedition.land].name+'</b> · 英雄 '+G.expedition.ids.length+' · 士兵 '+troopCount()+'</div>';
+  } else if(nextIdx>=0){
+    html += '<div class="map-status">下一处目标：<b>'+LANDS[nextIdx].name+'</b> · 守军 '+LANDS[nextIdx].power+' · 等待英雄带兵出征</div>';
+  } else {
+    html += '<div class="map-status">全部异世界已征服。</div>';
+  }
+  setHTML("landsArea", html);
 }
 function nextResearch() {
   return RESEARCH.find(r=>{
-    if(hasRes(r.id) || G.queue.includes(r.id)) return false;
+    if(hasRes(r.id)) return false;
     if(r.era>G.era) return false;
     if((r.id==="fade"||r.id==="sync"||r.id==="reson") && (G.B.facademy?G.B.facademy.count:0)===0) return false;
     if(r.up && (!G.B[r.up.b] || G.B[r.up.b].count===0)) return false;
@@ -2092,7 +2153,7 @@ function upTagFor(r){
 }
 function renderResearchView() {
   const doneCount = RESEARCH.filter(r=>hasRes(r.id)).length;
-  let html = '<div class="sect-title">研究 '+doneCount+'/'+RESEARCH.length+'<span class="info-dot" title="当前纪元：'+ERAS[G.era-1].n+'。研究随进度逐项解锁。">i</span></div>';
+  let html = '<div class="sect-title">研究 '+doneCount+'/'+RESEARCH.length+'<span class="info-dot" title="当前纪元：'+ERAS[G.era-1].n+'。研究即时完成，逐项解锁。">i</span></div>';
   const tile = (r, cls, extra) => {
     const k = researchKind(r);
     return '<div class="tile t-'+k+' '+cls+'" title="'+r.d+'">'+
@@ -2100,28 +2161,15 @@ function renderResearchView() {
       extra+
       '</div>';
   };
-  // 进行中的研究：只显示数字（剩余秒 / 进度百分比），不画进度条
-  if(G.queue.length){
-    html += '<div class="tile-grid">';
-    G.queue.forEach(id=>{
-      const r = RESEARCH.find(x=>x.id===id);
-      if(!r) return;
-      const left = Math.max(0,Math.ceil(r.t-G.R[id].prog));
-      const pct = Math.min(100,Math.floor(G.R[id].prog/r.t*100));
-      html += tile(r,'t-active','<div class="tile-meta"><span>剩余 '+left+'s</span><span>进度 '+pct+'%</span></div>');
-    });
-    html += '</div>';
-  }
-  // 摸索模式：只显示当前可研究的一项
+  // 摸索模式：只显示当前可研究的一项，点击即完成
   const avail = nextResearch();
   if(avail){
     const afford = canAfford(avail.cost);
-    const can = G.queue.length<researchSlots();
     html += '<div class="sect-title">下一项研究</div><div class="tile-grid">';
-    html += tile(avail,'','<div class="tile-meta"><span>耗时 '+Math.round(avail.t/60)+' 分钟</span><span>'+costStr(avail.cost)+'</span></div>'+
-      '<div class="tile-foot">'+(can?'<button class="btn-small" data-act="research" data-id="'+avail.id+'"'+(afford?'':'disabled')+'>研究</button>':'<span class="tile-tag">研究进行中</span>')+'</div>');
+    html += tile(avail,'','<div class="tile-meta"><span>即时完成</span><span>'+costStr(avail.cost)+'</span></div>'+
+      '<div class="tile-foot"><button class="btn-small" data-act="research" data-id="'+avail.id+'"'+(afford?'':'disabled')+'>研究</button></div>');
     html += '</div>';
-  } else if(!G.queue.length) {
+  } else {
     html += '<div class="empty-hint">本纪元研究已全部完成。</div>';
   }
   html += '<div class="sect-title">已完成研究</div>';

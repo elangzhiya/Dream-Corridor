@@ -137,11 +137,14 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .build-card.glory-card:before { display:none; }
 .build-card.glory-card { padding-top:0; }
 /* 平时只显示建筑本身；详细信息悬停浮出 */
-.bface { display:flex; flex-direction:column; gap:7px; padding:8px 10px 12px; min-width:0; }
-.bart { height:54px; border:1px solid #e8edf2; border-radius:5px 5px 2px 2px; background:linear-gradient(180deg,#fcfdfd,#f2f5f8); display:flex; align-items:flex-end; justify-content:center; position:relative; overflow:hidden; }
+.bface { display:flex; flex-direction:column; padding:8px 10px 10px; min-width:0; }
+.bart { height:72px; border:1px solid #e8edf2; border-radius:5px 5px 2px 2px; background:linear-gradient(180deg,#fcfdfd,#f2f5f8); display:flex; align-items:flex-start; justify-content:center; padding-top:5px; position:relative; overflow:hidden; }
 .bart:after { content:""; position:absolute; left:8px; right:8px; bottom:4px; height:1px; background:#d6dfe7; }
 .bart svg { width:64px; height:47px; display:block; position:relative; z-index:1; }
-.bplate { display:flex; align-items:center; justify-content:space-between; gap:6px; min-width:0; padding:0 2px; }
+/* 名字直接挂在建筑正面：牌匾式铭牌，数量同框 */
+.bplate { position:absolute; left:50%; bottom:10px; transform:translateX(-50%); display:flex; align-items:center; gap:5px; max-width:calc(100% - 14px); background:rgba(255,255,255,.94); border:1px solid #dfe6ed; border-radius:4px; padding:1px 7px; box-shadow:0 1px 3px rgba(20,45,75,.08); white-space:nowrap; z-index:2; }
+.bart .bname { font-size:12px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:1; }
+.bart .bqty { font-size:10px; font-weight:bold; color:#4a6a7a; background:#eaf1f6; border:1px solid #d8e3ec; border-radius:4px; padding:0 5px; flex-shrink:0; font-variant-numeric:tabular-nums; }
 .bdetail { display:none; position:absolute; left:-1px; top:calc(100% + 3px); min-width:236px; max-width:290px; background:var(--panel); border:1px solid var(--border); border-radius:6px; box-shadow:0 6px 18px rgba(20,45,75,.18); padding:8px 10px; z-index:40; white-space:normal; }
 .build-card:hover, .build-card:focus-within { z-index:41; }
 .build-card:hover .bdetail, .build-card:focus-within .bdetail { display:block; }
@@ -1771,7 +1774,7 @@ function renderBuild() {
         '<div class="bd-foot">'+(unlocked?(canBuild?(ready?'点击建造':'可建造'):'核心唯一'):'前置未完成 · ……')+'</div>';
       const qtyTag = built && !isCore ? '<span class="bqty">×'+s.count+'</span>' : '';
       html += '<div class="'+cardCls+'"'+cardAttrs+'>'+
-        '<div class="bface"><div class="bart">'+buildingArt(b)+'</div><div class="bplate"><span class="bname">'+dname+'</span>'+qtyTag+'</div></div>'+
+        '<div class="bface"><div class="bart">'+buildingArt(b)+'<div class="bplate"><span class="bname">'+dname+'</span>'+qtyTag+'</div></div></div>'+
         '<div class="bdetail">'+detail+'</div>'+
         '</div>';
     });

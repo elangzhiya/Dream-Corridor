@@ -127,23 +127,27 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .kind-head .dot { width:7px; height:7px; border-radius:2px; flex-shrink:0; }
 .build-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(276px,1fr)); gap:10px; width:100%; }
 /* 建筑卡：小建筑造型——斜屋顶 + 立面剪影 + 铭牌 + 基座（参考 Epoch-Restart） */
-.build-card { background:var(--panel); border:1px solid #e1e5e9; border-radius:4px 4px 8px 8px; overflow:visible; transition:border-color .15s ease,background .15s ease,box-shadow .15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.04); position:relative; min-width:0; padding-top:8px; }
-.build-card:before { content:""; position:absolute; left:0; right:0; top:0; height:8px; background:#cfd9e3; clip-path:polygon(0 100%,7% 0,93% 0,100% 100%); opacity:.85; }
+.build-card { --kc:#4d5c6b; background:var(--panel); border:1px solid #e1e5e9; border-radius:4px 4px 8px 8px; overflow:visible; transition:border-color .15s ease,background .15s ease,box-shadow .15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.04), inset 0 0 0 1px rgba(255,255,255,.7); position:relative; min-width:0; padding-top:8px; }
+.build-card:before { content:""; position:absolute; left:0; right:0; top:0; height:8px; background-color:#cfd9e3; background-image:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0)); clip-path:polygon(0 100%,7% 0,93% 0,100% 100%); opacity:.9; }
 .build-card:after { content:""; position:absolute; left:9px; right:9px; bottom:-1px; height:3px; border-radius:3px 3px 0 0; opacity:.75; background:#cfd9e3; }
-.build-card.k-basic:before,.build-card.k-basic:after { background:#7fa98c; }
-.build-card.k-func:before,.build-card.k-func:after { background:#6a93b5; }
-.build-card.k-core:before,.build-card.k-core:after { background:var(--gold); }
-.build-card.k-fused:before,.build-card.k-fused:after { background:#9a7fc0; }
+.build-card.k-basic { --kc:#4f8a68; }
+.build-card.k-func { --kc:#4f7ea3; }
+.build-card.k-core { --kc:#a8873f; }
+.build-card.k-fused { --kc:#7e68a8; }
+.build-card.k-basic:before,.build-card.k-basic:after { background-color:#7fa98c; }
+.build-card.k-func:before,.build-card.k-func:after { background-color:#6a93b5; }
+.build-card.k-core:before,.build-card.k-core:after { background-color:var(--gold); }
+.build-card.k-fused:before,.build-card.k-fused:after { background-color:#9a7fc0; }
 .build-card.glory-card:before { display:none; }
 .build-card.glory-card { padding-top:0; }
 /* 平时只显示建筑本身；详细信息悬停浮出 */
 .bface { display:flex; flex-direction:column; padding:8px 10px 10px; min-width:0; }
-.bart { height:72px; border:1px solid #e8edf2; border-radius:5px 5px 2px 2px; background:linear-gradient(180deg,#fcfdfd,#f2f5f8); display:flex; align-items:flex-start; justify-content:center; padding-top:5px; position:relative; overflow:hidden; }
-.bart:after { content:""; position:absolute; left:8px; right:8px; bottom:4px; height:1px; background:#d6dfe7; }
-.bart svg { width:64px; height:47px; display:block; position:relative; z-index:1; }
-/* 名字直接落在建筑立面上：无底框刻字，数量退到角落 */
-.bplate { position:absolute; left:50%; bottom:9px; transform:translateX(-50%); max-width:calc(100% - 20px); background:none; border:0; padding:0; white-space:nowrap; text-align:center; z-index:2; }
-.bart .bname { font-size:11.5px; font-weight:600; letter-spacing:.5px; color:#4d5c6b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 1px 0 #fff,0 0 3px #fff,0 0 2px #fff; }
+.bart { height:72px; border:1px solid #e8edf2; border-radius:5px 5px 2px 2px; background:radial-gradient(ellipse at 50% 28%,#fdfefe 0%,#f2f5f8 78%); box-shadow:inset 0 1px 3px rgba(30,60,90,.06); display:flex; align-items:flex-start; justify-content:center; padding-top:5px; position:relative; overflow:hidden; }
+.bart:after { content:""; position:absolute; left:8px; right:8px; bottom:3px; height:1px; background:#d6dfe7; }
+.bart svg { width:64px; height:47px; display:block; position:relative; z-index:1; transform:translateY(-3px); filter:drop-shadow(0 1px 1px rgba(45,70,95,.18)); }
+/* 名字落在建筑下方的地基位，不遮挡造型；数量退到角落 */
+.bplate { position:absolute; left:50%; bottom:5px; transform:translateX(-50%); max-width:calc(100% - 20px); background:none; border:0; padding:0; white-space:nowrap; text-align:center; z-index:2; }
+.bart .bname { font-size:11.5px; font-weight:600; letter-spacing:.5px; color:var(--kc); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 1px 0 #fff,0 0 3px #fff,0 0 2px #fff; }
 .bart .bqty { position:absolute; right:7px; top:5px; font-size:10px; font-weight:bold; color:#6b8494; background:rgba(234,241,246,.9); border:1px solid #d8e3ec; border-radius:4px; padding:0 5px; font-variant-numeric:tabular-nums; z-index:2; }
 .bdetail { display:none; position:absolute; left:-1px; top:calc(100% + 3px); min-width:236px; max-width:290px; background:var(--panel); border:1px solid var(--border); border-radius:6px; box-shadow:0 6px 18px rgba(20,45,75,.18); padding:8px 10px; z-index:40; white-space:normal; }
 .build-card:hover, .build-card:focus-within { z-index:41; }
@@ -540,7 +544,7 @@ const TROOP_BATCH = [1,10,50];
 function makeEquip(slot, tier, lv){
   const q = EQUIP_Q[tier];
   const slDef = EQUIP_SLOTS.find(x=>x.id===slot) || {n:slot};
-  return { slot, tier, cls:q.cls, power:Math.max(1,Math.round(EQUIP_BASE*q.mul*(1+0.4*(lv-1)))), name:q.n+"·"+slDef.n };
+  return { slot, tier, cls:q.cls, power:Math.max(1,Math.round(EQUIP_BASE*q.mul*(1+0.4*(lv-1)))), name:slDef.n };
 }
 function freshEquip(lv){ return EQUIP_SLOTS.map(sl=>makeEquip(sl.id,0,lv)); }
 function equipDrop(lv, depth){
@@ -904,7 +908,7 @@ function showHelp(){
   "【纪元】农耕→铁工→电气→融合→核能，每纪元解锁新建筑/新兵种。\n"+
   "【士兵】两套：①数字编制——按数量成批招募，无名字无等级，战死会减员，进荣誉墙（每10人信念+1/s 永久）；招募上限由帐篷营地决定：每座营地容纳 10 人，营地升级后 +50%，需建营地才能招兵；②英雄——只有「招募英雄」一种，不分职业，登记无上限，有名字/等级/经验/血量，造价×3，永不战死（重伤只疗养），自带8装备槽。\n"+
   "【信念】异世界的补给：产出有限，士兵、英雄、每座建筑都会持续消耗信念来维持；保持正收益才能养得起大军。\n"+
-  "【装备】武器/头盔/护甲/战靴/护手/披风/护符/指环 8 槽，白绿蓝紫金 5 品级（战力×1/1.6/2.5/4/6.5）。英雄巡逻与出征自动打怪，掉落品级越好越靠深处，自动换上更优装备。\n"+
+  "【装备】武器/头盔/护甲/战靴/护手/披风/护符/指环 8 槽，5 档品级以颜色区分（战力×1/1.6/2.5/4/6.5）。英雄巡逻与出征自动打怪，掉落品级越好越靠深处，自动换上更优装备。\n"+
   "【科研】在研究页开展研究，耗时分钟~小时级；融合链素材靠战斗缴获。\n"+
   "【存档】每5秒自动存档，离线最长12小时按效率补算。</div>");
 }
@@ -1718,7 +1722,7 @@ function buildingArt(b){
         '<path d="M13 32 H21 V43 H13 Z M26 32 H34 V43 H26 Z" fill="#fff" stroke="'+col+'" stroke-width="1.1"/>'+
         '<path d="M8 27 H43" stroke="'+col+'" stroke-width="1"/>';
   }
-  return '<svg viewBox="0 0 64 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+s+'<rect x="4" y="43" width="56" height="1.5" rx=".8" fill="#ccd6df"/></svg>';
+  return '<svg viewBox="0 0 64 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+s+'<ellipse cx="32" cy="44" rx="21" ry="2.2" fill="#8999a8" opacity=".12"/><rect x="4" y="43" width="56" height="1.5" rx=".8" fill="#ccd6df"/></svg>';
 }
 function renderBuild() {
   if(!G._seenCard) G._seenCard = {};
@@ -1885,7 +1889,7 @@ function renderRoster() {
     const hpc = s.hp>60?"":s.hp>30?"mid":"low";
     const tier = s.lv>=12?"mixed":s.lv>=8?"fuse":s.lv>=5?"unlock":"prod";
     const tierN = { prod:"新兵",unlock:"老练",fuse:"传奇",mixed:"传说" }[tier];
-    const gear = (s.equip||[]).map(e=>e?'<span class="eq '+e.cls+'" title="'+e.name+' 战力+'+e.power+'"></span>':'<span class="eq qx" title="空槽"></span>').join('');
+    const gear = (s.equip||[]).map(e=>e?'<span class="eq '+e.cls+'" title="'+e.name.replace(/^[白绿蓝紫金]·/,'')+' 战力+'+e.power+'"></span>':'<span class="eq qx" title="空槽"></span>').join('');
     html += '<div class="hero-card h-'+tier+'">'+
       '<div class="hero-banner"></div><div class="hero-body">'+
         '<div class="hero-top"><span class="hero-sigil">'+s.name.charAt(0)+'</span>'+

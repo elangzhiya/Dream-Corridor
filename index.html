@@ -141,28 +141,21 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .kind-head::after { content:""; flex:1; height:1px; background:var(--border); }
 .kind-head .dot { width:7px; height:7px; border-radius:2px; flex-shrink:0; }
 .build-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(276px,1fr)); gap:var(--sp-3); width:100%; }
-/* 建筑卡：小建筑造型——斜屋顶 + 立面剪影 + 铭牌 + 基座（参考 Epoch-Restart） */
-.build-card { --kc:#4d5c6b; background:var(--panel); border:1px solid #e1e5e9; border-radius:4px 4px 8px 8px; overflow:visible; transition:border-color .15s ease,background .15s ease,box-shadow .15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.04), inset 0 0 0 1px rgba(255,255,255,.7); position:relative; min-width:0; padding-top:8px; }
-.build-card:before { content:""; position:absolute; left:0; right:0; top:0; height:8px; background-color:#cfd9e3; background-image:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0)); clip-path:polygon(0 100%,7% 0,93% 0,100% 100%); opacity:.9; }
-.build-card:after { content:""; position:absolute; left:9px; right:9px; bottom:-1px; height:3px; border-radius:3px 3px 0 0; opacity:.75; background:#cfd9e3; }
+/* 建筑卡：只保留中间的框（用户偏好：去掉斜屋顶与底部色带），状态色落在框本身 */
+.build-card { --kc:#4d5c6b; --bc:#dde4ea; --bbg:#fbfcfd; background:var(--bbg); border:1px solid var(--bc); border-radius:8px; overflow:visible; transition:border-color .15s ease,background .15s ease,box-shadow .15s ease,transform .15s ease; box-shadow:var(--shadow); position:relative; min-width:0; padding:0; }
+.build-card:before,.build-card:after { display:none; }
 .build-card.k-basic { --kc:#4f8a68; }
 .build-card.k-func { --kc:#4f7ea3; }
 .build-card.k-core { --kc:#a8873f; }
 .build-card.k-fused { --kc:#7e68a8; }
-.build-card.k-basic:before,.build-card.k-basic:after { background-color:#7fa98c; }
-.build-card.k-func:before,.build-card.k-func:after { background-color:#6a93b5; }
-.build-card.k-core:before,.build-card.k-core:after { background-color:var(--gold); }
-.build-card.k-fused:before,.build-card.k-fused:after { background-color:#9a7fc0; }
-.build-card.glory-card:before { display:none; }
-.build-card.glory-card { padding-top:0; }
 /* 平时只显示建筑本身；详细信息悬停浮出 */
-.bface { display:flex; flex-direction:column; padding:var(--sp-3); min-width:0; }
-.bart { height:72px; border:1px solid #e8edf2; border-radius:5px 5px 2px 2px; background:radial-gradient(ellipse at 50% 28%,#fdfefe 0%,#f2f5f8 78%); box-shadow:inset 0 1px 3px rgba(30,60,90,.06); display:flex; align-items:flex-start; justify-content:center; padding-top:5px; position:relative; overflow:hidden; }
-.bart:after { content:""; position:absolute; left:8px; right:8px; bottom:3px; height:1px; background:#d6dfe7; }
-.bart svg { width:64px; height:47px; display:block; position:relative; z-index:1; transform:translateY(-3px); filter:drop-shadow(0 1px 1px rgba(45,70,95,.18)); }
+.bface { display:flex; flex-direction:column; min-width:0; }
+.bart { height:80px; border:0; border-radius:8px; background:transparent; display:flex; align-items:flex-start; justify-content:center; padding-top:7px; position:relative; overflow:hidden; }
+.bart:after { display:none; }
+.bart svg { width:66px; height:49px; display:block; position:relative; z-index:1; transform:translateY(-2px); filter:drop-shadow(0 1px 1px rgba(45,70,95,.18)); }
 /* 名字落在建筑下方的地基位，不遮挡造型；数量退到角落 */
-.bplate { position:absolute; left:50%; bottom:5px; transform:translateX(-50%); max-width:calc(100% - 20px); background:none; border:0; padding:0; white-space:nowrap; text-align:center; z-index:2; }
-.bart .bname { font-size:11.5px; font-weight:600; letter-spacing:.5px; color:var(--kc); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 1px 0 #fff,0 0 3px #fff,0 0 2px #fff; }
+.bplate { position:absolute; left:50%; bottom:6px; transform:translateX(-50%); max-width:calc(100% - 20px); background:none; border:0; padding:0; white-space:nowrap; text-align:center; z-index:2; }
+.bart .bname { font-size:12px; font-weight:600; letter-spacing:.5px; color:var(--kc); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-shadow:0 1px 0 #fff,0 0 3px #fff,0 0 2px #fff; }
 .bart .bqty { position:absolute; right:7px; top:5px; font-size:10px; font-weight:bold; color:#6b8494; background:rgba(234,241,246,.9); border:1px solid #d8e3ec; border-radius:4px; padding:0 5px; font-variant-numeric:tabular-nums; z-index:2; }
 .bdetail { display:none; position:absolute; left:-1px; top:calc(100% + 3px); min-width:236px; max-width:290px; background:var(--panel); border:1px solid var(--border); border-radius:6px; box-shadow:0 6px 18px rgba(20,45,75,.18); padding:8px 10px; z-index:40; white-space:normal; }
 .build-card:hover, .build-card:focus-within { z-index:41; }
@@ -171,26 +164,21 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .bd-line { font-size:12px; color:var(--text-secondary); line-height:1.45; margin-top:2px; }
 .bd-line.muted { color:var(--text-muted); font-size:11px; }
 .bd-foot { font-size:11px; color:var(--blue); margin-top:5px; padding-top:4px; border-top:1px solid var(--border-light); }
-.build-card:hover { border-color:#b0c4d8; box-shadow:var(--shadow-hover), inset 0 0 0 1px rgba(255,255,255,.7); }
+.build-card:hover { box-shadow:var(--shadow-hover); }
 .build-card.clickable { cursor:pointer; }
 /* 点击反馈：按下瞬间下压 + 建成闪光 */
 .build-card.clickable:active { transform:translateY(1px) scale(0.985); box-shadow:0 0 0 2px rgba(42,127,170,0.25); }
 @keyframes builtFlash { 0%{ box-shadow:0 0 0 0 rgba(74,143,95,0.55); background:var(--green-light); } 60%{ box-shadow:0 0 0 6px rgba(74,143,95,0); } 100%{ box-shadow:0 0 0 0 rgba(74,143,95,0); } }
 .build-card.flash { animation:builtFlash .6s ease-out; }
-.build-card.wait { border-color:#e1e5e9; background:var(--panel); }
-/* 可建未建=蓝系（点此建造）；已建=绿系；等待=灰白；锁定=虚线 —— 四态一眼可分 */
-.build-card.ready { border-color:#6a9dc4; background:#eaf3fa; }
-.build-card.ready:hover { border-color:#2a7faa; box-shadow:0 4px 14px rgba(42,127,170,.18); }
-.build-card.ready:after { opacity:1; background:#6a9dc4; }
-/* 已建：实心绿边 + 绿底 + 建筑区淡绿，和未建的灰白卡一眼可分 */
-.build-card.built { border-color:#5d9f6f; background:#e6f3ea; box-shadow:0 1px 4px rgba(74,143,95,.13), inset 0 0 0 1px rgba(255,255,255,.7); }
-.build-card.built:hover { border-color:#4a8f5f; box-shadow:0 4px 14px rgba(74,143,95,.2); }
-.build-card.built .bart { background:radial-gradient(ellipse at 50% 28%,#f4fbf6 0%,#e2f0e7 78%); border-color:#cbe3d2; }
-.build-card.built:before { background-image:linear-gradient(180deg,rgba(255,255,255,.5),rgba(255,255,255,0)); opacity:1; }
-.build-card.built:after { opacity:1; height:4px; background:#5d9f6f; }
+/* 三态配色落在框本身：可建未建=蓝；已建=绿；资源不足=灰白；锁定=虚线 */
+.build-card.wait { --bc:#dde4ea; --bbg:#fbfcfd; }
+.build-card.ready { --bc:#93b9d8; --bbg:#eef6fc; }
+.build-card.ready:hover { --bc:#2a7faa; box-shadow:0 4px 14px rgba(42,127,170,.18); }
+.build-card.built { --bc:#79b189; --bbg:#eef8f1; box-shadow:0 1px 4px rgba(74,143,95,.13); }
+.build-card.built:hover { --bc:#4a8f5f; box-shadow:0 4px 14px rgba(74,143,95,.2); }
 .build-card.locked-card { opacity:0.6; border-style:dashed; }
 .build-card.glory-card { border-color:#e3dac6; background:#fffdf8; }
-.build-card.fused-card { border-color:#dfe2ee; }
+.build-card.fused-card { --bc:#cfc9e4; }
 .bbody { padding:7px 10px 8px; }
 .new-tag { font-size:10px; color:#fff; background:var(--blue); border-radius:3px; padding:0 4px; margin-left:3px; }
 .brow { display:flex; align-items:center; gap:5px; min-width:0; }
@@ -310,8 +298,12 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .tile.t-done  { --tile-c:#aab4be; --tile-bg:#f4f6f8; background:#fbfcfd; }
 .tile.t-active{ background:var(--tile-bg); border-color:var(--tile-c); }
 .tile-head { display:flex; align-items:center; gap:5px; min-width:0; }
-.tile-ic { flex:none; width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; border-radius:4px; background:var(--tile-c); color:#fff; font-size:11px; font-weight:bold; }
+.tile-ic { flex:none; width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; border-radius:4px; background:linear-gradient(135deg,var(--tile-c) 0%,var(--tile-bg) 130%); box-shadow:inset 0 0 0 1px rgba(255,255,255,.45); position:relative; }
+.tile-ic:after { content:""; width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.9); box-shadow:0 0 0 1px rgba(0,0,0,.04); }
 .tile-name { font-size:12.5px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+/* 信息点：说明文字悬停显示，平时只留一个小圆点 */
+.info-dot { flex:none; width:14px; height:14px; border-radius:50%; border:1px solid var(--border); background:var(--panel); color:var(--text-muted); font-size:10px; line-height:12px; text-align:center; cursor:help; margin-left:auto; }
+.info-dot:hover { border-color:var(--blue); color:var(--blue); }
 .tile-tag { flex:none; font-size:10px; color:var(--tile-c); background:var(--tile-bg); border-radius:3px; padding:1px 4px; }
 .tile-desc { font-size:11px; color:var(--text-secondary); line-height:1.45; margin-top:5px; min-height:31px; }
 .tile-meta { font-size:10.5px; color:var(--text-muted); margin-top:4px; display:flex; justify-content:space-between; gap:4px; font-variant-numeric:tabular-nums; }
@@ -328,7 +320,12 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 #viewResearch .tile { border-radius:3px 7px 7px 3px; padding:6px 10px 6px 12px; }
 #viewResearch .tile:before { top:0; bottom:auto; left:0; right:0; width:auto; height:3px; }
 #viewResearch .tile:after { content:""; position:absolute; left:5px; top:5px; bottom:5px; width:1px; border-left:1px dashed var(--tile-c); opacity:.5; }
-#viewResearch .tile-ic { border-radius:50%; width:18px; height:18px; font-size:10px; }
+#viewResearch .tile-ic { border-radius:50%; width:18px; height:18px; }
+#viewResearch .tile-ic:after { width:5px; height:5px; }
+#viewResearch .tile-ic.rk-up     { --tile-c:#b8862b; --tile-bg:#faf6e8; }
+#viewResearch .tile-ic.rk-fuse   { --tile-c:#8b46b8; --tile-bg:#f6effa; }
+#viewResearch .tile-ic.rk-unlock { --tile-c:#2a7faa; --tile-bg:#e8f2f8; }
+#viewResearch .tile-ic.rk-prod   { --tile-c:#4a8f5f; --tile-bg:#eaf5ea; }
 #viewResearch .tile-head { min-height:18px; }
 #viewResearch .tile-desc { min-height:0; margin-top:2px; line-height:1.35; font-size:10.5px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
 #viewResearch .tile-meta { margin-top:2px; }
@@ -350,7 +347,8 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .hero-banner:after { content:""; position:absolute; right:9px; top:-3px; width:11px; height:11px; border:2px solid var(--hc); background:var(--panel); border-radius:50%; }
 .hero-body { padding:8px 11px 10px; }
 .hero-top { display:flex; align-items:center; gap:8px; min-width:0; }
-.hero-sigil { flex:none; width:34px; height:34px; border-radius:50%; background:var(--hc-bg); border:2px solid var(--hc); color:var(--hc); font-size:16px; font-weight:bold; display:flex; align-items:center; justify-content:center; box-shadow:inset 0 0 0 2px #fff; }
+.hero-sigil { flex:none; width:34px; height:34px; border-radius:50%; background:radial-gradient(circle at 38% 32%,var(--hc-bg),var(--hc)); border:2px solid var(--hc); display:flex; align-items:center; justify-content:center; box-shadow:inset 0 0 0 2px #fff; position:relative; }
+.hero-sigil:after { content:""; width:10px; height:10px; border-radius:50%; background:rgba(255,255,255,.9); box-shadow:0 0 0 2px rgba(255,255,255,.35); }
 .hero-id { flex:1; min-width:0; }
 .hero-name,.hero-sub { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .hero-name { font-size:14px; font-weight:bold; }
@@ -987,11 +985,18 @@ function getCost(b) {
 function canAfford(cost){ return cheatOn() || Object.entries(cost).every(([k,v])=>(G.res[k]||0)>=v*S); }
 function payCost(cost){ if(cheatOn()) return; Object.entries(cost).forEach(([k,v])=>{ G.res[k]-=v*S; }); }
 
-// 英雄战力 = 基础 ×等级 ×血量 + 8 件装备加成
+// 兵种专属研究加成（硝化化学/火控计算机）
+function typeBattleMul(type){
+  let m = 1;
+  if(type==="rifle" && hasRes("niter")) m *= 1.15;     // 硝化化学：灰铁步枪手战力 +15%
+  if(type==="armor" && hasRes("firectrl")) m *= 1.15;  // 火控计算机：曙光动力甲战力 +15%
+  return m;
+}
+// 英雄战力 = 基础 ×等级 ×血量 ×兵种加成 + 8 件装备加成
 function soldierPower(s) {
   if(cheatOn()) return 1e9;
   const u = UNITS[s.type];
-  let p = u.power * (1 + 0.35*(s.lv-1));
+  let p = u.power * (1 + 0.35*(s.lv-1)) * (s.talent||1) * typeBattleMul(s.type);
   if(s.hp < 100) p *= (0.4 + 0.6*s.hp/100);
   if(u.powerUse && !(G.res.power > u.powerUse*3*S)) p *= 0.5; // 缺电减半
   p += heroGearPower(s);
@@ -1009,7 +1014,7 @@ function troopCap(){ return Math.floor((G.B.tent&&G.B.tent.count||0)*campCapPer(
 function troopArmyPower(){
   if(cheatOn()) return 1e9;
   let p=0;
-  Object.entries(G.troops||{}).forEach(([t,n])=>{ const u=UNITS[t]; if(u) p+=u.power*n; });
+  Object.entries(G.troops||{}).forEach(([t,n])=>{ const u=UNITS[t]; if(u) p+=u.power*n*typeBattleMul(t); });
   return p;
 }
 // 普通士兵战死：按比率从各兵种扣减，记荣誉墙
@@ -1377,10 +1382,11 @@ function recruitUnit() {
   const type = heroBaseType(), u = UNITS[type];
   if(!u) return;
   const cost = heroHireCost();
-  const lv = (G.B.tent&&G.B.tent.lv>=5)?2:1;
   if(!canAfford(cost)){ showToast("招募英雄资源不足","error"); return; }
   payCost(cost);
-  const s = { id:G.nextSid++,name:genName(),type,lv,xp:0,kills:0,hp:100,state:"idle",land:-1,healRate:0,equip:freshEquip(lv) };
+  const lv = 1 + Math.floor(Math.random()*10);                       // 等级 1~10 随机
+  const talent = 0.8 + Math.random()*0.4;                            // 战力资质：该等级标准 ±20% 浮动随机
+  const s = { id:G.nextSid++,name:genName(),type,lv,talent,xp:0,kills:0,hp:100,state:"idle",land:-1,healRate:0,equip:freshEquip(lv) };
   G.soldiers.push(s);
   addLog("英雄 "+s.name+" 入队","good");
   showToast("英雄 "+s.name+" 入队","success");
@@ -1490,7 +1496,12 @@ function patrolTick() {
         if(s.hp<=0){ downHero(s,where+"巡逻中"); }
         else if(s.hp<30){ enterHeal(s); }
       });
-      if(troopShare>0 && ePower>pSum) killTroops(where+"巡逻中", 0.03+0.05*(ePower/Math.max(1,pSum)));
+      if(troopShare>0 && ePower>pSum){
+        let loss = 0.03+0.05*(ePower/Math.max(1,pSum));
+        if(hasRes("silicate")) loss *= 0.8;                       // 硅酸盐学：工事驻防阵亡率 -20%
+        if(G.B.sentry && G.B.sentry.lv>=5) loss *= 0.5;           // 碉堡化：阵亡概率减半
+        killTroops(where+"巡逻中", loss);
+      }
     }
   });
 }
@@ -1918,35 +1929,32 @@ function renderRoster() {
   let html = '';
   // ===== 普通士兵：数字计数、按数量招募、有战死；按兵种职能分四类卡片 =====
   const tcap = troopCap(), tused = troopCount(), tfull = tused>=tcap;
-  html += '<div class="sect-title">士兵 · 数字编制（'+tused+' / '+tcap+' 人 · 有战死）</div>';
-  html += '<div style="font-size:11px;color:var(--text-secondary);margin-bottom:5px">营地容量由帐篷营地决定：每座 '+Math.round(campCapPer())+' 人（营地升级后 +50%）。当前 '+(G.B.tent&&G.B.tent.count||0)+' 座营地'+(tfull?' · 已招满，需再建营地':'')+'。</div>';
+  const campTip = '营地容量由帐篷营地决定：每座 '+Math.round(campCapPer())+' 人（营地升级后 +50%）。当前 '+(G.B.tent&&G.B.tent.count||0)+' 座营地'+(tfull?' · 已招满，需再建营地':'')+'。士兵为数字编制，成批招募、会战死。';
+  html += '<div class="sect-title">士兵 '+tused+' / '+tcap+'<span class="info-dot" title="'+campTip+'">i</span></div>';
   html += '<div class="tile-grid">';
   UNIT_ORDER.forEach(uid=>{
     const u = UNITS[uid];
     if(!G.unitUnlocked[uid]) return;
     const cnt = G.troops[uid]||0, kind = unitKind(uid);
     const batchBtns = TROOP_BATCH.map(n=>'<button class="btn-small"'+(tfull?' disabled':'')+' data-recruit-troop="'+uid+'" data-act="troop" data-id="'+uid+'" data-n="'+n+'">+'+n+'</button>').join('');
-    html += '<div class="tile t-'+kind+'">'+
-      '<div class="tile-head"><span class="tile-ic">'+u.n.charAt(0)+'</span><span class="tile-name">'+u.n+'</span><span class="tile-tag">'+UNIT_KIND_N[kind]+'</span></div>'+
-      '<div class="tile-desc">'+u.desc+'</div>'+
+    html += '<div class="tile t-'+kind+'" title="'+u.desc+'">'+
+      '<div class="tile-head"><span class="tile-ic"></span><span class="tile-name">'+u.n+'</span><span class="tile-tag">'+UNIT_KIND_N[kind]+'</span><span class="info-dot">i</span></div>'+
       '<div class="tile-meta"><span>战力 '+u.power+'</span><span>在役 '+cnt+'</span></div>'+
       '<div class="tile-foot"><span class="tile-tag"style="background:transparent">'+costStr(u.cost)+'</span><span class="batch">'+batchBtns+'</span></div>'+
       '</div>';
   });
   html += '</div>';
-  if(troopCount()===0) html += '<div class="empty-hint">士兵是数字编制，成批招募、战死会减员。先建帐篷营地，再招募一批守住营地。</div>';
+  if(troopCount()===0) html += '<div class="empty-hint">先建帐篷营地，再招募士兵守家。</div>';
 
-  // ===== 英雄：只有「招募英雄」，不区分职业；无上限、8装备、5品级、不死 =====
-  html += '<div class="sect-title">英雄（'+G.soldiers.length+' 位）</div>';
+  // ===== 英雄：只有「招募英雄」，不区分职业 =====
+  html += '<div class="sect-title">英雄 '+G.soldiers.length+'<span class="info-dot" title="有名字、会成长、带 8 件装备、随机等级与战力。重伤只疗养，名额无上限。">i</span></div>';
   html += '<div class="hero-grid">';
-  html += '<div class="hero-card h-fuse hero-recruit"><div class="hero-banner"></div><div class="hero-body">'+
+  html += '<div class="hero-card h-fuse hero-recruit" title="有名字、会成长、带 8 件装备，等级与战力随机。重伤只疗养，可无限招募。"><div class="hero-banner"></div><div class="hero-body">'+
     '<div class="hero-rsig">+</div><div class="rn">招募英雄</div>'+
-    '<div class="rd">有名字、会成长、带 8 件装备。重伤只疗养。</div>'+
-    '<div class="rm">造价 ×3 · '+costStr(heroHireCost())+' · 无上限</div>'+
+    '<div class="rm">'+costStr(heroHireCost())+'</div>'+
     '<button class="btn-small" data-act="hero">招募英雄</button></div></div>';
   html += '</div>';
   const sorted = [...G.soldiers].sort((a,b)=>(b.lv-a.lv)||(soldierPower(b)-soldierPower(a)));
-  if(sorted.length===0) html += '<div class="empty-hint">还没有英雄。英雄是队伍的核心。</div>';
   html += '<div class="hero-grid">';
   sorted.forEach(s=>{
     const stateTxt = { idle:"营地巡逻",patrol:"巡逻·"+(s.land>=0?LANDS[s.land].name:""),expedition:"出征中",healing:"疗养中"}[s.state];
@@ -1955,7 +1963,7 @@ function renderRoster() {
     const gear = (s.equip||[]).map(e=>e?'<span class="eq '+e.cls+'" title="'+e.name.replace(/^[白绿蓝紫金]·/,'')+' 战力+'+e.power+'"></span>':'<span class="eq qx" title="空槽"></span>').join('');
     html += '<div class="hero-card h-'+tier+'">'+
       '<div class="hero-banner"></div><div class="hero-body">'+
-        '<div class="hero-top"><span class="hero-sigil">'+s.name.charAt(0)+'</span>'+
+        '<div class="hero-top"><span class="hero-sigil"></span>'+
           '<span class="hero-id"><span class="hero-name">'+s.name+'</span></span>'+
           '<span class="hero-lv">LV<b>'+s.lv+'</b></span></div>'+
         '<div class="hero-stats">'+
@@ -1963,19 +1971,18 @@ function renderRoster() {
           '<div class="hero-stat"><div class="v">+'+heroGearPower(s)+'</div><div class="k">装备</div></div>'+
           '<div class="hero-stat"><div class="v">'+s.kills+'</div><div class="k">击杀</div></div>'+
         '</div>'+
-        '<div class="hero-gear"><div class="hero-gear-label"><span>装备 · 8 槽</span><span>自动换装</span></div><div class="eqgrid">'+gear+'</div></div>'+
+        '<div class="hero-gear"><div class="eqgrid">'+gear+'</div></div>'+
         '<div class="hero-foot"><span class="hero-state">'+stateTxt+'</span><span>XP '+Math.floor(s.xp)+'/'+xpNeed(s.lv)+'</span></div>'+
         '<div class="hero-hp"><i class="hpbar-fill '+hpc+'"style="width:'+Math.max(0,s.hp)+'%"></i></div>'+
       '</div></div>';
   });
   html += '</div>';
   // ===== 荣誉墙：普通士兵战死记录 =====
-  html += '<div class="honor-title"> 荣誉墙（'+G.honorWall.length+'· 每10人信念+1/s 永久）</div>';
-  if(G.honorWall.length===0) html += '<div class="empty-hint">还没有阵亡记录。</div>';
-  else {
+  html += '<div class="honor-title"> 荣誉墙 '+G.honorWall.length+'<span class="info-dot" title="每 10 名阵亡士兵永久提供 +1 信念/s。">i</span></div>';
+  if(G.honorWall.length){
     html += '<div class="tile-grid">';
     G.honorWall.forEach(h=>{
-      html += '<div class="tile t-done"><div class="tile-head"><span class="tile-ic">念</span><span class="tile-name">'+h.name+'</span></div>'+
+      html += '<div class="tile t-done"><div class="tile-head"><span class="tile-ic"></span><span class="tile-name">'+h.name+'</span></div>'+
         '<div class="tile-desc"style="min-height:0">'+h.type+' · 击杀'+h.kills+' · '+h.where+'</div></div>';
     });
     html += '</div>';
@@ -1994,13 +2001,13 @@ function renderLandsView() {
       const readyN = G.soldiers.filter(s=>s.state==="idle"||s.state==="patrol").length + troopCount();
       btns = '<button class="btn-small atk"'+(l.locked?' disabled':'')+' data-act="attack" data-i="'+i+'">'+(l.locked?'尚未开放':'全军出征（'+readyN+'人可战）')+'</button>';
     } else {
-      btns = '<div style="font-size:11px;color:var(--text-secondary);margin-top:3px">巡逻队 '+pat+' 人 · 自动驻守</div>';
+      btns = '';
     }
-    return '<div class="land-card '+(l.liberated?'liberated':'')+' '+(l.locked?'locked':'')+'">'+
-      '<h4 style="margin:0 0 2px;font-size:13px">'+(i+1)+". "+L.name+' <span style="font-size:11px;color:var(--text-muted)">['+L.zone+']</span> '+(l.liberated?'<span style="color:var(--green);font-size:11px">已收复</span>':l.locked?'<span style="color:var(--text-muted);font-size:11px"></span>':'')+'</h4>'+
-      '<div style="font-size:11px;color:var(--text-secondary)">'+L.set+'</div>'+
-      '<div style="font-size:11px;color:var(--text-muted);margin:2px 0">守军战力 '+L.power+(l.liberated&&rateStrL?' | 特产：'+rateStrL:'')+'</div>'+
-      (l.liberated?'':'<div style="font-size:11px;color:var(--text-muted)">出征消耗：'+costStrL+' ｜ 缴获：'+rewardStrL+'</div>')+btns+'</div>';
+    const tip = L.set+(l.liberated&&rateStrL?' | 特产：'+rateStrL:'')+(l.liberated?' | 巡逻队 '+pat+' 人，自动驻守':' | 出征消耗：'+costStrL+' ｜ 缴获：'+rewardStrL);
+    return '<div class="land-card '+(l.liberated?'liberated':'')+' '+(l.locked?'locked':'')+'" title="'+tip+'">'+
+      '<h4 style="margin:0;font-size:13px">'+(i+1)+". "+L.name+' '+(l.liberated?'<span style="color:var(--green);font-size:11px">已收复</span>':'')+'</h4>'+
+      '<div style="font-size:11px;color:var(--text-muted);margin-top:2px">守军 '+L.power+(pat&&l.liberated?' · 驻守 '+pat:'')+'</div>'+
+      btns+'</div>';
   }).join(''));
 }
 function nextResearch() {
@@ -2028,12 +2035,11 @@ function upTagFor(r){
 }
 function renderResearchView() {
   const doneCount = RESEARCH.filter(r=>hasRes(r.id)).length;
-  let html = '<div class="sect-title">研究档案（已完成 '+doneCount+'/'+RESEARCH.length+'· 当前 '+ERAS[G.era-1].n+'）</div>';
+  let html = '<div class="sect-title">研究 '+doneCount+'/'+RESEARCH.length+'<span class="info-dot" title="当前纪元：'+ERAS[G.era-1].n+'。研究随进度逐项解锁。">i</span></div>';
   const tile = (r, cls, extra) => {
     const k = researchKind(r);
-    return '<div class="tile t-'+k+' '+cls+'">'+
-      '<div class="tile-head"><span class="tile-ic">'+RKIND_IC[k]+'</span><span class="tile-name">'+r.n+'</span>'+upTagFor(r)+'</div>'+
-      '<div class="tile-desc">'+r.d+'</div>'+
+    return '<div class="tile t-'+k+' '+cls+'" title="'+r.d+'">'+
+      '<div class="tile-head"><span class="tile-ic rk-'+k+'"></span><span class="tile-name">'+r.n+'</span>'+upTagFor(r)+'<span class="info-dot">i</span></div>'+
       extra+
       '</div>';
   };
@@ -2059,7 +2065,7 @@ function renderResearchView() {
       '<div class="tile-foot">'+(can?'<button class="btn-small" data-act="research" data-id="'+avail.id+'"'+(afford?'':'disabled')+'>研究</button>':'<span class="tile-tag">研究进行中</span>')+'</div>');
     html += '</div>';
   } else if(!G.queue.length) {
-    html += '<div class="empty-hint">当前纪元的知识已全部掌握。推进纪元或建造融合研究院以解锁新研究。</div>';
+    html += '<div class="empty-hint">本纪元研究已全部完成。</div>';
   }
   html += '<div class="sect-title">已完成研究</div>';
   const done = RESEARCH.filter(r=>hasRes(r.id));

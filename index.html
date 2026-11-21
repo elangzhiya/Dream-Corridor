@@ -125,11 +125,16 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .kind-head { display:flex; align-items:center; gap:7px; margin:2px 0 6px; font-size:12px; font-weight:bold; color:var(--text-secondary); letter-spacing:1px; }
 .kind-head::after { content:""; flex:1; height:1px; background:var(--border); }
 .kind-head .dot { width:7px; height:7px; border-radius:2px; flex-shrink:0; }
-.build-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:9px; width:100%; }
-/* 建筑卡：低饱和、浅底、细边框（参考 Epoch-Restart） */
-.build-card { background:var(--panel); border:1px solid #e1e5e9; border-radius:8px; overflow:visible; transition:border-color .15s ease,background .15s ease,box-shadow .15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.04); position:relative; min-width:0; }
+.build-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(276px,1fr)); gap:10px; width:100%; }
+/* 建筑卡：like 工地铭牌——浅底、细边框、底部类型色条（参考 Epoch-Restart） */
+.build-card { background:var(--panel); border:1px solid #e1e5e9; border-radius:9px 9px 7px 7px; overflow:visible; transition:border-color .15s ease,background .15s ease,box-shadow .15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.04); position:relative; min-width:0; }
+.build-card:before { content:""; position:absolute; left:9px; right:9px; bottom:-1px; height:3px; border-radius:3px 3px 0 0; opacity:.75; background:#cfd9e3; }
+.build-card.k-basic:before { background:#7fa98c; }
+.build-card.k-func:before { background:#6a93b5; }
+.build-card.k-core:before { background:var(--gold); }
+.build-card.k-fused:before { background:#9a7fc0; }
 /* 平时只显示建筑本身；详细信息悬停浮出 */
-.bface { display:flex; align-items:center; gap:6px; padding:6px 9px; }
+.bface { display:flex; align-items:center; gap:10px; padding:12px 13px 14px; min-height:60px; }
 .bdetail { display:none; position:absolute; left:-1px; top:calc(100% + 3px); min-width:236px; max-width:290px; background:var(--panel); border:1px solid var(--border); border-radius:6px; box-shadow:0 6px 18px rgba(20,45,75,.18); padding:8px 10px; z-index:40; white-space:normal; }
 .build-card:hover, .build-card:focus-within { z-index:41; }
 .build-card:hover .bdetail, .build-card:focus-within .bdetail { display:block; }
@@ -155,9 +160,11 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .new-tag { font-size:10px; color:#fff; background:var(--blue); border-radius:3px; padding:0 4px; margin-left:3px; }
 .brow { display:flex; align-items:center; gap:5px; min-width:0; }
 .brow-act { margin-top:5px; flex-wrap:wrap; row-gap:4px; }
-.bicon { font-size:13px; font-weight:bold; line-height:1; flex-shrink:0; width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; background:#f0f3f6; color:#5a6a7a; border-radius:5px; border:1px solid #e6ebf0; }
+.bicon { font-size:16px; font-weight:bold; line-height:1; flex-shrink:0; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; background:#f0f3f6; color:#5a6a7a; border-radius:7px; border:1px solid #e6ebf0; }
 .build-card.built .bicon, .build-card.glory-card.built .bicon { background:#eaf5ea; color:#5a8f6b; border-color:#d5e7d9; }
-.bname { font-size:14px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; }
+.bname { font-size:16px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:1; }
+.bqty { font-size:13px; font-weight:bold; color:#4a6a7a; background:#eaf1f6; border:1px solid #d8e3ec; border-radius:6px; padding:2px 8px; flex-shrink:0; font-variant-numeric:tabular-nums; }
+.build-card.built .bqty { color:#3f7d55; background:#eaf5ea; border-color:#cfe4d4; }
 .badge { font-size:11px; padding:1px 5px; border-radius:3px; margin-left:auto; white-space:nowrap; flex-shrink:0; background:#f0f3f6; color:#6b7a89; border:1px solid #e6ebf0; }
 .badge-core { background:#edf3f8; color:#4a7fa5; border-color:#dce8f1; }
 .badge-basic { background:#f2f5f3; color:#5a8f6b; border-color:#dce8de; }
@@ -272,6 +279,20 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .tile .batch .btn-small { padding:2px 6px; font-size:11px; }
 .tile-hero .eqgrid { gap:2px; margin-top:5px; }
 .tile-hero .eq { width:15px; height:15px; }
+
+/* —— 三类卡片造型差异化 —— */
+/* 研究卡：档案纸/书页风——顶部色条 + 左侧双装订线 + 底部页码感 */
+#viewResearch .tile { border-radius:3px 7px 7px 3px; padding:10px 11px 9px 14px; }
+#viewResearch .tile:before { top:0; bottom:auto; left:0; right:0; width:auto; height:3px; }
+#viewResearch .tile:after { content:""; position:absolute; left:5px; top:6px; bottom:6px; width:1px; border-left:1px dashed var(--tile-c); opacity:.5; }
+#viewResearch .tile-ic { border-radius:50%; }
+/* 士兵卡：军牌/盾牌风——右下斜切角 + 双层描边 + 左侧加粗竖条 */
+#viewRoster .tile { border-radius:6px 6px 16px 6px; border:1px solid var(--tile-c); padding:9px 11px 9px 14px; }
+#viewRoster .tile:before { width:4px; border-radius:4px 0 0 4px; }
+#viewRoster .tile-ic { border-radius:4px 4px 8px 4px; }
+#viewRoster .tile-foot { border-top:1px dashed var(--border); padding-top:5px; }
+/* 荣誉墙：纪念馆铭牌——灰底 + 顶部细线 */
+#viewRoster .tile.t-done { border-radius:4px; border-top:2px solid #b9c3cd; }
 
 .toast { position:fixed; bottom:60px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--panel); border:1px solid var(--blue); padding:8px 18px; border-radius:4px; color:var(--blue); font-size:14px; display:none; z-index:999; box-shadow:var(--shadow); opacity:0; transition:.3s; max-width:80vw; }
 .toast.show { display:block; opacity:1; transform:translateX(-50%) translateY(0); }
@@ -830,7 +851,8 @@ function showHelp(){
   "【建造】无槽位限制，点击即完成。约束 = 资源指数上浮 + 科技纪元 + 故土收复。\n"+
   "【升级】建筑不再单独升级，也不显示等级。研究对应的工艺科技后，建筑会换上新名字，之后新建的同类型建筑也沿用该名字。\n"+
   "【纪元】农耕→铁工→电气→融合→核能，每纪元解锁新建筑/新兵种。\n"+
-  "【士兵】两套：①数字编制——按数量成批招募，无名字无等级，战死会减员，进荣誉墙（每5人信念+1/s 永久）；招募上限由帐篷营地决定：每座营地容纳 10 人，营地升级后 +50%，需建营地才能招兵；②英雄——只有「招募英雄」一种，不分职业，登记无上限，有名字/等级/经验/血量，造价×3，永不战死（重伤只疗养），自带8装备槽。\n"+
+  "【士兵】两套：①数字编制——按数量成批招募，无名字无等级，战死会减员，进荣誉墙（每10人信念+1/s 永久）；招募上限由帐篷营地决定：每座营地容纳 10 人，营地升级后 +50%，需建营地才能招兵；②英雄——只有「招募英雄」一种，不分职业，登记无上限，有名字/等级/经验/血量，造价×3，永不战死（重伤只疗养），自带8装备槽。\n"+
+  "【信念】异世界的补给：产出有限，士兵、英雄、每座建筑都会持续消耗信念来维持；保持正收益才能养得起大军。\n"+
   "【装备】武器/头盔/护甲/战靴/护手/披风/护符/指环 8 槽，白绿蓝紫金 5 品级（战力×1/1.6/2.5/4/6.5）。英雄巡逻与出征自动打怪，掉落品级越好越靠深处，自动换上更优装备。\n"+
   "【科研】在研究页开展研究，耗时分钟~小时级；融合链素材靠战斗缴获。\n"+
   "【存档】每5秒自动存档，离线最长12小时按效率补算。</div>");
@@ -928,23 +950,24 @@ function gainXp(s,amt) {
 }
 
 // ---------- 全局产率 ----------
-function computeRates(forOffline) {
+function computeRates(forOffline, assumeFull) {
   const rate = {};
   RES_ORDER.forEach(k=>rate[k]=0);
   const B = G.B;
   const lvMul = id => Math.pow(1.6,(B[id]?B[id].lv:1)-1);
   const liberated = G.lands.filter(l=>l.liberated);
-  // 自然采集兜底：永不完全断供
-  rate.food += 1; rate.build += 1; rate.belief += 1;
+  // 自然采集兜底：永不完全断供（信念在下方统一计算）
+  rate.food += 1; rate.build += 1;
 
-  // 信念
-  let belief = 3*(B.altar?B.altar.count:0) + 6*liberated.length + (G.matrixOn?6:0);
-  let built = BUILDINGS.filter(b=>b.id!=="altar"&& b.id!=="gmatrix").reduce((s,b)=>s+(B[b.id]?B[b.id].count:0),0);
-  belief += 1*built;
-  belief += 1 * Math.floor(G.honorWall.reduce((a,h)=>a+(h.count||1),0)/5); // 荣誉墙抚恤（按战死人数）
+  // 信念（异世界补给：产出有限，军队与建筑持续消耗；保底 +1 永不断供）
+  let belief = 2 + 3*(B.altar?B.altar.count:0) + 6*liberated.length + (G.matrixOn?6:0);
+  belief += 1 * Math.floor(G.honorWall.reduce((a,h)=>a+(h.count||1),0)/10); // 荣誉墙抚恤（每10名阵亡）
   belief *= 1 + 0.5*(B.resotw?B.resotw.count:0);
   if(hasRes("firework")) belief *= 1.1;
-  rate.belief += belief;
+  // 维护消耗：士兵、英雄、每座建筑都要信念供养（军队越大、营地越多，开销越高）
+  const builtAll = BUILDINGS.reduce((s,b)=>s+(B[b.id]?B[b.id].count:0),0);
+  const upkeep = 0.5*troopCount() + 2*G.soldiers.length + 0.3*builtAll;
+  rate.belief += Math.max(1, Math.round(belief - upkeep));
 
   // 直接产出
   BUILDINGS.forEach(b=>{
@@ -1019,7 +1042,7 @@ function computeRates(forOffline) {
   RES_ORDER.forEach(k=>{
     const d = demand[k]||0;
     if(d<=0){ effMap[k]=1; return; }
-    const stock = (G.res[k]||0)/S;
+    const stock = assumeFull ? Infinity : (G.res[k]||0)/S;
     if(k==="power"){
       // 电力不足时按比例供给
       effMap[k] = Math.min(1,stock>0 ? 1 :0); // 有库存就供，没库存全停
@@ -1053,6 +1076,27 @@ function computeRates(forOffline) {
 function gloryThreshold(){ return Math.floor(25000*S * (hasRes("gatem")?0.8:1)); }
 
 // ---------- 建造 / 升级 ----------
+// 建造前满负荷模拟：若建成后任一资源净产出变负，则判定入不敷出、拒绝建造
+// 避免玩家建出消耗大于产出的产业链后库存被抽干、再也攒不回上游资源而卡死
+function starvingByBuild(b){
+  if(!b || !G.B[b.id]) return null;
+  const st = G.B[b.id];
+  const before = computeRates(false,true);
+  st.count += 1;
+  let after;
+  try { after = computeRates(false,true); }
+  finally { st.count -= 1; }
+  let worst = null;
+  RES_ORDER.forEach(k=>{
+    if(k==="power" || k==="belief") return; // 电力按库存供给、信念有保底，不纳入赤字判定
+    const d = (after[k]||0) - (before[k]||0);
+    // 建造使该资源由非负转为负，或使其净产出进一步恶化且已为负
+    if((after[k]||0) < 0 && d < 0){
+      if(!worst || after[k] < after[worst]) worst = k;
+    }
+  });
+  return worst;
+}
 function buildB(bid) {
   const b = BUILDINGS.find(x=>x.id===bid);
   const st = G.B[bid];
@@ -1060,6 +1104,8 @@ function buildB(bid) {
   if(b.kind==="core"&& st.count>0){ showToast("核心建筑唯一","error"); return; }
   const cost = getCost(b);
   if(!canAfford(cost)){ showToast("资源不足","error"); return; }
+  const starve = starvingByBuild(b);
+  if(starve){ showToast(RES[starve].n+"产量不足，无法建造","error"); return; }
   payCost(cost);
   st.count++;
   G.glory += (b.glory||0)*S;
@@ -1622,7 +1668,7 @@ function renderBuild() {
       // 只展示当前效果，不展示 Lv3/Lv5 未来效果
       const effect = b.effect;
       const chainHtml = (function(){ const cs=chainState(b.id); if(!cs) return ''; return '<div class="bd-line muted'+(cs.n>0?' fed':'')+'">链· '+(cs.n>0?'✓ ':'○ ')+cs.name+(cs.bonus>0?' +'+Math.round(cs.bonus*100)+'%':' 缺供')+'</div>'; })();
-      const cardCls = "build-card"+(built?" built":"")+(ready?" ready":canBuild?" wait":"")+(unlocked?"":" locked-card")+(b.kind==="fused"?" fused-card":"")+(canBuild?" clickable":"");
+      const cardCls = "build-card k-"+b.kind+(built?" built":"")+(ready?" ready":canBuild?" wait":"")+(unlocked?"":" locked-card")+(b.kind==="fused"?" fused-card":"")+(canBuild?" clickable":"");
       const cardAttrs = canBuild ? ' data-bid="'+b.id+'" data-act="build" data-id="'+b.id+'"' : ' data-bid="'+b.id+'"';
       const dname = buildingName(b, s.lv);
       const detail =
@@ -1632,8 +1678,9 @@ function renderBuild() {
         chainHtml+
         (built?'':'<div class="bd-line muted">建造：'+costStr(cost)+'</div>')+
         '<div class="bd-foot">'+(unlocked?(canBuild?(ready?'点击建造':'可建造'):'核心唯一'):'前置未完成 · ……')+'</div>';
+      const qtyTag = built && !isCore ? '<span class="bqty">×'+s.count+'</span>' : '';
       html += '<div class="'+cardCls+'"'+cardAttrs+'>'+
-        '<div class="bface"><span class="bicon'+(built?' anim-flame':'')+'">'+b.i+'</span><span class="bname">'+dname+'</span></div>'+
+        '<div class="bface"><span class="bicon'+(built?' anim-flame':'')+'">'+b.i+'</span><span class="bname">'+dname+'</span>'+qtyTag+'</div>'+
         '<div class="bdetail">'+detail+'</div>'+
         '</div>';
     });
@@ -1755,7 +1802,7 @@ function renderRoster() {
   });
   html += '</div>';
   // ===== 荣誉墙：普通士兵战死记录 =====
-  html += '<div class="honor-title"> 荣誉墙（'+G.honorWall.length+'· 每5人信念+1/s 永久）</div>';
+  html += '<div class="honor-title"> 荣誉墙（'+G.honorWall.length+'· 每10人信念+1/s 永久）</div>';
   if(G.honorWall.length===0) html += '<div class="empty-hint">还没有阵亡记录。</div>';
   else {
     html += '<div class="tile-grid">';

@@ -1,28 +1,1704 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>梦境回廊 · 腐土</title>
-<link rel="stylesheet" href="style.css">
+<title>梦境回廊· 灰壤门 V8</title>
+<style>
+:root {
+  --bg:#f8fafc; --panel:#ffffff; --card:#ffffff; --border:#d5dde6;
+  --border-light:#e4eaf0; --text:#212529; --text-secondary:#5a6a7a;
+  --text-muted:#7f8c9a; --blue:#2a7faa; --blue-light:#e8f2f8;
+  --green:#4a8f5f; --green-light:#eaf5ea; --yellow:#b8862b;
+  --yellow-light:#faf6e8; --red:#d32f2f; --red-light:#fdecec;
+  --purple:#4a7fa5; --purple-light:#e8f2f8;
+  --gold:#b8862b; --gold-light:#faf6e8;
+  --shadow:0 1px 3px rgba(20,45,75,0.07);
+}
+* { box-sizing:border-box; margin:0; }
+body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","PingFang SC",sans-serif; font-size:15px; display:flex; flex-direction:column; height:100vh; overflow:hidden; }
+
+.header { background:var(--panel); border-bottom:1px solid var(--border); padding:8px 16px; display:flex; align-items:center; gap:14px; flex-shrink:0; box-shadow:var(--shadow); flex-wrap:wrap; }
+.game-title { font-size:19px; font-weight:bold; letter-spacing:2px; white-space:nowrap; }
+.game-title span { color:var(--blue); }
+.era-badge { font-size:13px; padding:3px 10px; border-radius:4px; background:var(--blue-light); color:var(--blue); font-weight:bold; white-space:nowrap; }
+.era-badge.t2 { background:#e4eef5; color:#3a6d92; }
+.era-badge.t3 { background:#e4f2ea; color:#2e7d56; }
+.era-badge.t4 { background:#e6f0f7; color:var(--purple); }
+.era-badge.t5 { background:#f5ede2; color:#9a6a3a; }
+
+.glory-wrap { flex:1; min-width:200px; max-width:420px; }
+.glory-text { font-size:12px; color:var(--text-secondary); display:flex; justify-content:space-between; margin-bottom:2px; }
+.glory-text b { color:var(--gold); }
+.glory-bar-bg { height:6px; background:var(--border-light); border-radius:3px; overflow:hidden; }
+.glory-bar-fill { height:100%; background:linear-gradient(90deg,var(--gold),#e0b060); width:0%; transition:.5s; }
+
+.hbtns { display:flex; gap:5px; }
+.hbtn { padding:3px 9px; font-size:12px; border:1px solid var(--border); border-radius:4px; background:var(--card); color:var(--text-secondary); cursor:pointer; }
+.hbtn:hover { border-color:var(--blue); color:var(--blue); }
+.hbtn.danger:hover { border-color:var(--red); color:var(--red); }
+.cheat-badge { display:none; font-size:12px; font-weight:bold; padding:3px 9px; border-radius:4px; background:#fdf1d8; color:#9a6a1f; border:1px solid #d9b45f; cursor:pointer; user-select:none; }
+.cheat-badge.on { display:inline-flex; align-items:center; }
+.cheat-badge:hover { background:#f7e3b8; }
+
+.world-tabs { display:flex; gap:5px; }
+.world-tab { padding:4px 12px; border:1px solid var(--border); border-radius:4px; cursor:pointer; font-size:13px; background:var(--card); color:var(--text-secondary); }
+.world-tab.active { border-color:var(--blue); color:var(--blue); background:var(--blue-light); font-weight:bold; }
+.world-tab.locked { color:var(--text-muted); cursor:not-allowed; border-color:var(--border-light); background:var(--bg); filter:blur(1px); }
+
+/* ===== 三栏主布局 ===== */
+.main { display:flex; flex:1; overflow:hidden; gap:0; }
+.left { flex:1; min-width:0; overflow-y:auto; padding:10px 14px 90px; background:var(--bg); }
+.right { width:324px; border-left:1px solid var(--border); background:var(--panel); display:flex; flex-direction:column; flex-shrink:0; overflow:hidden; }
+.colres { width:264px; flex-shrink:0; border-right:1px solid var(--border); background:var(--bg); display:flex; flex-direction:column; overflow:hidden; }
+.colhead { flex-shrink:0; padding:9px 12px; font-size:13px; font-weight:bold; color:var(--text); border-bottom:1px solid var(--border); background:var(--card); display:flex; align-items:center; justify-content:space-between; letter-spacing:1px; }
+.colhead .sub { font-size:11px; color:var(--text-muted); font-weight:normal; letter-spacing:0; }
+.reslist { flex:1; overflow-y:auto; padding:9px 9px; display:flex; flex-direction:column; gap:6px; }
+
+/* 资源卡（左栏紧凑竖排） */
+.resrow { position:relative; background:var(--card); border:1px solid var(--border); border-radius:7px; padding:6px 9px 7px; overflow:hidden; box-shadow:var(--shadow); transition:border-color .2s,box-shadow .2s; }
+.resrow:hover { border-color:var(--blue); box-shadow:0 2px 8px rgba(42,127,170,0.12); }
+.resrow.dim { opacity:0.5; }
+.resrow .rline { display:flex; align-items:center; gap:6px; position:relative; z-index:1; }
+.resrow .ricon { font-size:12px; font-weight:bold; width:18px; height:18px; flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; background:var(--blue-light); color:var(--blue); border-radius:4px; }
+.resrow .rname { font-size:12px; color:var(--text-secondary); flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.resrow .rval { font-size:15px; font-weight:bold; color:var(--text); min-width:44px; text-align:right; font-variant-numeric:tabular-nums; }
+.resrow .rrate { font-size:11px; color:var(--green); min-width:52px; text-align:right; font-variant-numeric:tabular-nums; }
+.resrow .rrate.neg { color:var(--red); }
+.resrow .rrate.zero { color:var(--text-muted); }
+.resrow .grow { position:absolute; left:0; bottom:0; height:3px; background:linear-gradient(90deg,var(--green),#8ecb8e); opacity:.75; pointer-events:none; }
+.resrow .grow.neg { background:var(--red); }
+.resrow .grow.run { animation:growFlow var(--dur,3s) linear infinite; opacity:.6; }
+@keyframes growFlow { from{width:0%} to{width:100%} }
+
+/* 中栏主标签 */
+.maintabs { display:flex; gap:3px; border-bottom:2px solid var(--border); margin-bottom:10px; flex-shrink:0; }
+.maintab { flex:1; padding:7px 4px; font-size:13px; font-weight:bold; color:var(--text-muted); background:none; border:none; border-bottom:2px solid transparent; margin-bottom:-2px; cursor:pointer; transition:all .15s ease; }
+.maintab:hover:not(.active) { color:var(--text-secondary); background:var(--card); }
+.maintab.active { color:var(--blue); border-bottom-color:var(--blue); }
+.mainview { display:none; }
+.mainview.active { display:block; animation:viewIn .25s ease; }
+@keyframes viewIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:translateY(0)} }
+
+/* 右栏区块 */
+.sideblock { display:flex; flex-direction:column; min-height:0; }
+.sideblock.qblock { flex:0 0 auto; max-height:42%; border-bottom:1px solid var(--border); }
+.sideblock.lblock { flex:1; min-height:0; }
+.blockbody { overflow-y:auto; padding:8px; flex:1; }
+.empty-hint { font-size:12px; color:var(--text-muted); text-align:center; padding:14px 6px; line-height:1.6; }
+
+.qcard { background:var(--card); border:1px solid var(--border-light); border-left:3px solid var(--blue); border-radius:5px; padding:7px 9px; margin-bottom:6px; animation:fadeInUp .3s ease; }
+.qcard.next { border-left-color:var(--gold); }
+.qcard .qn { font-size:13px; font-weight:bold; color:var(--text); display:flex; justify-content:space-between; align-items:center; }
+.qcard .qt { font-size:11px; color:var(--text-muted); }
+.qcard .qd { font-size:11px; color:var(--text-secondary); margin:3px 0; line-height:1.5; }
+.qcard .qc { font-size:11px; color:var(--text-muted); margin-bottom:4px; }
+@media (max-width:1200px) { .right { width:272px; } .colres { width:224px; } }
+
+.guide { background:var(--purple-light); border:1px solid #d4c0e8; padding:8px 12px; border-radius:6px; margin-bottom:8px; color:#5a4a7a; font-size:14px; line-height:1.5; }
+.guide::before { content:""; }
+
+.res-bar { display:flex; gap:5px; margin-bottom:8px; flex-wrap:wrap; }
+.res { background:var(--panel); padding:4px 8px; border-radius:4px; font-size:13px; display:flex; align-items:center; gap:4px; border:1px solid var(--border-light); box-shadow:var(--shadow); }
+.res .val { font-weight:bold; min-width:26px; }
+.res .rate { color:var(--green); font-size:12px; }
+.res .rate.neg { color:var(--red); }
+.res.dim { opacity:0.55; }
+.res { position:relative; overflow:hidden; }
+.res .grow { position:absolute; left:0; bottom:0; height:3px; background:var(--green); opacity:0.7; pointer-events:none; transition:width .3s; }
+.res .grow.neg { background:var(--red); }
+
+.era-divider { display:flex; align-items:center; margin:10px 0 6px; }
+.era-divider .era-icon { font-size:16px; margin-right:6px; }
+.era-divider .era-name { font-size:15px; font-weight:bold; letter-spacing:1px; white-space:nowrap; }
+.era-divider .era-line { flex:1; height:1px; background:linear-gradient(90deg,var(--border),transparent); margin-left:8px; }
+.era-divider .era-cond { font-size:12px; color:var(--text-muted); margin-left:8px; }
+.era-sep { height:1px; background:var(--border); opacity:.6; margin:14px 0 8px; }
+.era-divider.locked-era { opacity:0.5; }
+.era-divider.glory-div .era-name { color:var(--gold); }
+.era-divider.glory-div .era-line { background:linear-gradient(90deg,var(--gold),transparent); }
+
+.kind-group { margin-bottom:12px; }
+.kind-head { display:flex; align-items:center; gap:7px; margin:2px 0 6px; font-size:12px; font-weight:bold; color:var(--text-secondary); letter-spacing:1px; }
+.kind-head::after { content:""; flex:1; height:1px; background:var(--border); }
+.kind-head .dot { width:7px; height:7px; border-radius:2px; flex-shrink:0; }
+.build-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(252px,1fr)); gap:9px; }
+/* 建筑卡：低饱和、浅底、细边框（参考 Epoch-Restart） */
+.build-card { background:var(--panel); border:1px solid #e1e5e9; border-radius:8px; overflow:hidden; transition:border-color .15s ease,background .15s ease,box-shadow .15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.04); position:relative; }
+.build-card:hover { border-color:#b0c4d8; background:#f5f7fa; }
+.build-card.clickable { cursor:pointer; }
+/* 点击反馈：按下瞬间下压 + 建成闪光 */
+.build-card.clickable:active { transform:translateY(1px) scale(0.985); box-shadow:0 0 0 2px rgba(42,127,170,0.25); }
+@keyframes builtFlash { 0%{ box-shadow:0 0 0 0 rgba(74,143,95,0.55); background:var(--green-light); } 60%{ box-shadow:0 0 0 6px rgba(74,143,95,0); } 100%{ box-shadow:0 0 0 0 rgba(74,143,95,0); } }
+.build-card.flash { animation:builtFlash .6s ease-out; }
+.build-card.wait { border-color:#e1e5e9; background:var(--panel); }
+.build-card.ready { border-color:#7fa98c; background:#eaf5ea; }
+.build-card.ready:hover { border-color:#6d9a79; background:#e3f0e3; }
+.build-card.built { border-color:#cfd9e3; background:#f7f9fb; }
+.build-card.built:hover { border-color:#b0c4d8; background:#eef3f7; }
+.build-card.locked-card { opacity:0.6; border-style:dashed; }
+.build-card.glory-card { border-color:#e3dac6; background:#fffdf8; }
+.build-card.fused-card { border-color:#dfe2ee; }
+.bbody { padding:7px 10px 8px; }
+.brow { display:flex; align-items:center; gap:5px; min-width:0; }
+.brow-act { margin-top:5px; }
+.bicon { font-size:13px; font-weight:bold; line-height:1; flex-shrink:0; width:20px; height:20px; display:inline-flex; align-items:center; justify-content:center; background:#f0f3f6; color:#5a6a7a; border-radius:5px; border:1px solid #e6ebf0; }
+.build-card.built .bicon, .build-card.glory-card.built .bicon { background:#eaf5ea; color:#5a8f6b; border-color:#d5e7d9; }
+.bname { font-size:14px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.badge { font-size:11px; padding:1px 5px; border-radius:3px; margin-left:auto; white-space:nowrap; flex-shrink:0; background:#f0f3f6; color:#6b7a89; border:1px solid #e6ebf0; }
+.badge-core { background:#edf3f8; color:#4a7fa5; border-color:#dce8f1; }
+.badge-basic { background:#f2f5f3; color:#5a8f6b; border-color:#dce8de; }
+.badge-func { background:#f2f4f7; color:#60748a; border-color:#e0e6ed; }
+.badge-fused { background:#f2f3f8; color:#737fa5; border-color:#e2e5f0; }
+.lvtag { font-size:11px; color:#6b7a89; background:#f0f3f6; border:1px solid #e6ebf0; padding:0 5px; border-radius:3px; white-space:nowrap; flex-shrink:0; }
+.beffect { font-size:12px; color:var(--text-secondary); margin-top:2px; line-height:1.4; }
+.chain-line { font-size:11px; color:#9aa4ae; margin-top:1px; line-height:1.3; }
+.chain-line.fed { color:#5d8f6a; }
+.bcost { font-size:12px; color:var(--text-muted); white-space:nowrap; }
+.bact { margin-left:auto; display:flex; align-items:center; gap:4px; }
+.bstatus { font-size:12px; color:var(--text-muted); white-space:nowrap; }
+.build-card button { padding:3px 10px; border:1px solid var(--blue); border-radius:4px; cursor:pointer; font-size:13px; background:var(--blue-light); color:var(--blue); transition:.1s; user-select:none; white-space:nowrap; }
+.build-card button:hover:not(:disabled) { background:var(--blue); color:#fff; }
+.build-card button:active:not(:disabled) { transform:scale(0.93); }
+.build-card button:disabled { background:var(--bg); color:var(--text-muted); border-color:var(--border); cursor:not-allowed; }
+.build-card button.gbtn { border-color:var(--gold); color:var(--gold); background:var(--gold-light); }
+.build-card button.gbtn:hover:not(:disabled) { background:var(--gold); color:#fff; }
+.count-tag { font-size:12px; color:#5a6a7a; background:#f0f3f6; border:1px solid #e6ebf0; padding:0 5px; border-radius:3px; white-space:nowrap; flex-shrink:0; }
+.upgrade-tag { font-size:11px; color:#60748a; background:#f2f5f8; border:1px solid #dfe7ef; padding:1px 5px; border-radius:3px; white-space:nowrap; }
+
+@keyframes flameBreath { 0%,100%{opacity:0.7} 50%{opacity:1} }
+.anim-flame { animation:flameBreath 2s ease-in-out infinite; }
+@keyframes beaconPulse { 0%,100%{filter:none} 50%{filter:drop-shadow(0 0 4px rgba(196,154,58,0.8))} }
+.anim-beacon { animation:beaconPulse 2s ease-in-out infinite; }
+@keyframes sparkSpin { 0%{transform:rotate(0)} 100%{transform:rotate(360deg)} }
+.anim-gear { animation:sparkSpin 4s linear infinite; display:inline-block; }
+
+.side-tabs { display:flex; border-bottom:1px solid var(--border); flex-wrap:wrap; }
+.side-tab { flex:1; text-align:center; padding:7px 2px; font-size:12px; color:var(--text-muted); cursor:pointer; border-bottom:2px solid transparent; background:none; border:none; transition:.1s; }
+.side-tab.active { color:var(--blue); border-bottom-color:var(--blue); }
+.side-tab:hover:not(.active) { color:var(--text-secondary); }
+.side-content { flex:1; overflow-y:auto; padding:9px; }
+
+.unit-card,.land-card,.res-card { background:var(--panel); border:1px solid var(--border); border-radius:5px; padding:7px 8px; margin-bottom:6px; box-shadow:var(--shadow); }
+.land-card.liberated { border-color:#b8d8b8; background:var(--green-light); }
+.land-card.locked { opacity:0.5; }
+.soldier-card { background:var(--panel); border:1px solid var(--border); border-radius:5px; padding:6px 8px; margin-bottom:5px; display:flex; align-items:center; gap:7px; }
+.soldier-card.healing { border-color:var(--yellow); background:var(--yellow-light); }
+.soldier-card.patroling { border-color:#b8d8b8; }
+.soldier-card.expedition { border-color:var(--blue); background:var(--blue-light); }
+.scard-main { flex:1; min-width:0; }
+.scard-name { font-size:13px; font-weight:bold; }
+.scard-info { font-size:11px; color:var(--text-secondary); margin-top:1px; }
+.hpbar-bg { height:3px; background:var(--border-light); border-radius:2px; margin-top:3px; overflow:hidden; }
+.hpbar-fill { height:100%; background:var(--green); }
+.hpbar-fill.low { background:var(--red); }
+.hpbar-fill.mid { background:var(--yellow); }
+.eqgrid { display:flex; flex-wrap:wrap; gap:2px; margin-top:4px; }
+.eq { font-size:10px; padding:1px 4px; border:1px solid var(--border); border-radius:3px; background:var(--panel); white-space:nowrap; }
+.eq.q0 { color:#8a8f98; border-color:#c9cdd4; }
+.eq.q1 { color:#2f8f4e; border-color:#8fd0a2; background:#f2fbf4; }
+.eq.q2 { color:#2f6fc0; border-color:#9dc2ef; background:#f2f7fe; }
+.eq.q3 { color:#8b46b8; border-color:#c79ade; background:#faf4fd; }
+.eq.q4 { color:#b8860b; border-color:#e6c453; background:#fffaf0; font-weight:bold; }
+.eq.qx { color:var(--text-muted); border-color:var(--border-light); }
+
+.btn-small { padding:3px 8px; font-size:12px; background:var(--blue-light); color:var(--blue); border:1px solid var(--blue); border-radius:3px; cursor:pointer; margin-top:3px; transition:.1s; user-select:none; }
+.btn-small:hover:not(:disabled) { background:var(--blue); color:#fff; }
+.btn-small:active:not(:disabled) { transform:translateY(1px) scale(0.95); filter:brightness(0.92); }
+@keyframes btnFlash { 0%{ box-shadow:0 0 0 0 rgba(74,143,95,0.6); } 100%{ box-shadow:0 0 0 7px rgba(74,143,95,0); } }
+.btn-small.flash { animation:btnFlash .55s ease-out; }
+.btn-small:disabled { background:var(--bg); color:var(--text-muted); border-color:var(--border); cursor:not-allowed; }
+.btn-small.atk { background:#faecec; color:var(--red); border-color:var(--red); }
+.btn-small.atk:hover:not(:disabled) { background:var(--red); color:#fff; }
+.btn-small.atk.busy { opacity:0.6; cursor:wait; }
+.btn-small.grn { background:var(--green-light); color:var(--green); border-color:var(--green); }
+.btn-small.grn:hover:not(:disabled) { background:var(--green); color:#fff; }
+
+.log-box { font-size:12px; color:var(--text-secondary); line-height:1.6; }
+.log-box p { margin:2px 0; padding-bottom:2px; border-bottom:1px solid var(--border-light); }
+.log-box p.warn { color:var(--red); }
+.log-box p.good { color:var(--green); }
+
+.honor-item { background:var(--gold-light); border:1px solid #e0d0a8; border-radius:5px; padding:6px 8px; margin-bottom:5px; font-size:12px; color:#7a6a3a; }
+.honor-title { font-size:13px; font-weight:bold; color:var(--gold); margin:8px 0 5px; }
+
+.rq-item { background:var(--panel); border:1px solid var(--border); border-radius:5px; padding:6px 8px; margin-bottom:5px; }
+.rq-item.researching { border-color:var(--blue); background:var(--blue-light); }
+.rq-name { font-size:13px; font-weight:bold; }
+.rq-desc { font-size:11px; color:var(--text-secondary); margin:2px 0; }
+.rq-bar-bg { height:4px; background:var(--border-light); border-radius:2px; overflow:hidden; margin-top:3px; }
+.rq-bar-fill { height:100%; background:var(--blue); }
+.sect-title { font-size:13px; font-weight:bold; color:var(--text-secondary); margin:8px 0 4px; border-left:3px solid var(--blue); padding-left:6px; }
+
+.toast { position:fixed; bottom:60px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--panel); border:1px solid var(--blue); padding:8px 18px; border-radius:4px; color:var(--blue); font-size:14px; display:none; z-index:999; box-shadow:var(--shadow); opacity:0; transition:.3s; max-width:80vw; }
+.toast.show { display:block; opacity:1; transform:translateX(-50%) translateY(0); }
+.toast.success { border-color:var(--green); color:var(--green); }
+.toast.error { border-color:var(--red); color:var(--red); }
+
+.scroll-panel { position:fixed; bottom:0; left:0; right:0; z-index:100; transition:.3s; }
+.scroll-bar { background:var(--panel); border-top:1px solid var(--border); padding:8px 20px; display:flex; align-items:center; justify-content:space-between; cursor:pointer; user-select:none; box-shadow:0 -2px 10px rgba(0,0,0,0.06); transition:background .2s ease,box-shadow .3s ease; }
+.scroll-bar:hover { background:var(--card); }
+.scroll-bar-left { display:flex; align-items:center; gap:10px; }
+.scroll-bar-icon { color:var(--purple); font-size:16px; animation:pulse 2s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:0.6} 50%{opacity:1} }
+.scroll-bar-title { color:var(--text); font-size:13px; font-weight:bold; letter-spacing:2px; }
+.scroll-bar-hint { color:var(--text-muted); font-size:12px; }
+.scroll-bar-badge { background:var(--purple); color:#fff; font-size:12px; padding:1px 6px; border-radius:8px; min-width:18px; text-align:center; }
+.scroll-bar-toggle { color:var(--text-muted); font-size:14px; transition:.3s; }
+.scroll-panel.expanded .scroll-bar-toggle { transform:rotate(180deg); }
+.scroll-panel.expanded .scroll-body { max-height:260px; padding:10px 20px 14px; }
+.scroll-body { background:var(--bg); border-top:1px solid var(--border-light); max-height:0; overflow:hidden; padding:0 20px; transition:.3s ease; }
+.scroll-list { max-height:240px; overflow-y:auto; padding-right:6px; }
+.scroll-item { background:var(--panel); border:1px solid var(--border-light); border-left:3px solid var(--border); border-radius:5px; padding:8px 10px; margin-bottom:6px; animation:fadeInUp .35s ease; transition:border-color .2s ease,box-shadow .2s ease; }
+.scroll-item:hover { border-left-color:var(--purple); box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+.scroll-item.story-item { border-left-color:var(--purple); background:linear-gradient(180deg,var(--panel),var(--purple-light)); }
+@keyframes fadeInUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+.scroll-item-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:3px; }
+.scroll-item-tag { font-size:11px; padding:1px 5px; border-radius:3px; font-weight:bold; }
+.tag-build { background:var(--green-light); color:var(--green); }
+.tag-combat { background:var(--red-light); color:var(--red); }
+.tag-lore { background:var(--purple-light); color:var(--purple); }
+.tag-glory { background:var(--gold-light); color:#a8832e; }
+.tag-discover { background:var(--blue-light); color:var(--blue); }
+.tag-story { background:var(--purple-light); color:var(--purple); border:1px solid #d4c0e8; }
+.scroll-item-time { font-size:11px; color:var(--text-muted); }
+.scroll-item-title { font-size:13px; color:var(--text); font-weight:bold; margin-bottom:2px; }
+.scroll-item-text { font-size:12px; color:var(--text-secondary); line-height:1.6; white-space:pre-line; }
+.scroll-empty { color:var(--text-muted); font-size:12px; text-align:center; padding:16px; }
+.scroll-bar.flash { animation:flashBar .6s ease; }
+@keyframes flashBar { 0%,100%{box-shadow:0 -2px 10px rgba(0,0,0,0.06)} 50%{box-shadow:0 -4px 16px rgba(42,127,170,0.35)} }
+
+/* ===== 全局平滑化（参考 Epoch-Restart） ===== */
+.left::-webkit-scrollbar,.side-content::-webkit-scrollbar,.scroll-list::-webkit-scrollbar { width:6px; }
+.left::-webkit-scrollbar-track,.side-content::-webkit-scrollbar-track,.scroll-list::-webkit-scrollbar-track { background:transparent; }
+.left::-webkit-scrollbar-thumb,.side-content::-webkit-scrollbar-thumb,.scroll-list::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; transition:background .2s; }
+.left::-webkit-scrollbar-thumb:hover,.side-content::-webkit-scrollbar-thumb:hover,.scroll-list::-webkit-scrollbar-thumb:hover { background:var(--text-muted); }
+.hpbar-fill { transition:width .3s ease; }
+.rq-bar-fill { transition:width .3s ease; }
+.glory-bar-fill { transition:width .5s ease; }
+.unit-card,.land-card,.res-card,.rq-item { transition:border-color .2s ease,box-shadow .2s ease; }
+.unit-card:hover,.land-card:hover,.rq-item:hover { border-color:#c0d4ec; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+.res { transition:border-color .2s ease,box-shadow .2s ease; }
+.res:hover { border-color:#c0d4ec; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+.hbtn,.world-tab,.side-tab { transition:all .15s ease; }
+.btn-small,.build-card button { transition:all .12s ease; }
+.scroll-panel.expanded ~ .modal-bg .toast,.toast { transition:.3s; }
+
+.modal-bg { position:fixed; inset:0; background:rgba(0,0,0,0.45); display:none; align-items:center; justify-content:center; z-index:1000; }
+.modal-bg.show { display:flex; }
+.modal { background:var(--panel); border-radius:10px; padding:20px 24px; max-width:520px; width:92%; max-height:82vh; overflow-y:auto; box-shadow:0 8px 30px rgba(0,0,0,0.25); }
+.modal h3 { font-size:17px; margin-bottom:10px; color:var(--text); }
+.modal .mtext { font-size:14px; line-height:1.7; color:var(--text-secondary); white-space:pre-line; }
+.modal .mbtns { display:flex; gap:8px; margin-top:14px; justify-content:flex-end; }
+.modal button { padding:6px 16px; border-radius:5px; border:1px solid var(--border); background:var(--card); cursor:pointer; font-size:14px; }
+.modal button.primary { background:var(--blue); color:#fff; border-color:var(--blue); }
+.modal button.gold { background:var(--gold); color:#fff; border-color:var(--gold); }
+.push-door-btn { display:none; margin:10px auto 0; padding:8px 26px; font-size:16px; font-weight:bold; letter-spacing:3px; background:linear-gradient(135deg,var(--gold),#e0b060); color:#fff; border:none; border-radius:8px; cursor:pointer; box-shadow:0 2px 10px rgba(196,154,58,0.4); }
+.push-door-btn:hover { filter:brightness(1.08); }
+.cond-list { font-size:13px; line-height:1.9; margin-top:6px; }
+.cond-list .ok { color:var(--green); }
+.cond-list .no { color:var(--red); }
+</style>
 </head>
 <body>
-<div id="app">
-    <div id="header">
-        <div id="title">梦境回廊 · 腐土 · 第一扇门</div>
-        <div id="status"></div>
-        <div id="glory"></div>
-    </div>
-    <div id="world-tabs"></div>
-    <div id="tabs"></div>
-    <div id="cols">
-        <div id="left"><div class="col-head">营地</div><div id="resource-box"></div></div>
-        <div id="main"></div>
-        <div id="right"><div class="col-head">记事</div><div id="log-box"></div></div>
-    </div>
+
+<div class="header">
+  <div class="game-title">梦境<span>回廊</span> <span style="font-size:12px;color:var(--text-muted)">V8· 灰壤门</span></div>
+  <div class="era-badge"id="eraBadge">T1 农耕纪元</div>
+  <div class="glory-wrap"><div class="glory-text"><span>荣光 <b id="gloryVal">0</b></span><span id="gloryRate" style="color:var(--gold)"></span></div><div class="glory-bar-bg"><div class="glory-bar-fill"id="gloryBar"></div></div></div>
+  <div class="world-tabs"id="worldTabs"></div>
+  <span class="cheat-badge"id="cheatBadge"onclick="CHEAT.toggle()"title="点击关闭作弊模式">作弊模式</span>
+  <div class="hbtns">
+    <button class="hbtn"onclick="showHelp()"> 说明</button>
+    <button class="hbtn danger"onclick="hardReset()"> 清档</button>
+  </div>
 </div>
-<script src="content.js"></script>
-<script src="engine.js"></script>
-<script src="ui.js"></script>
+
+<div class="main">
+  <aside class="colres">
+    <div class="colhead">资源 <span class="sub"id="resTime">每秒结算</span></div>
+    <div class="reslist"id="resBar"></div>
+  </aside>
+  <div class="left">
+    <div class="maintabs">
+      <button class="maintab active"data-tab="build"onclick="switchMainTab('build')"> 建造</button>
+      <button class="maintab"data-tab="research"onclick="switchMainTab('research')"> 研究</button>
+      <button class="maintab"data-tab="roster"onclick="switchMainTab('roster')"> 士兵</button>
+      <button class="maintab"data-tab="lands"onclick="switchMainTab('lands')"> 故土</button>
+    </div>
+    <div class="mainview active"id="viewBuild"><div id="buildArea"></div><div id="doorArea"></div></div>
+    <div class="mainview"id="viewResearch"><div id="researchArea"></div></div>
+    <div class="mainview"id="viewRoster"><div id="rosterArea"></div></div>
+    <div class="mainview"id="viewLands"><div id="landsArea"></div></div>
+  </div>
+  <aside class="right">
+    <div class="sideblock lblock">
+      <div class="colhead"> 事件日志 <span class="sub">最近动态</span></div>
+      <div class="blockbody"id="logArea"></div>
+    </div>
+  </aside>
+</div>
+
+<div class="scroll-panel expanded"id="scrollPanel">
+  <div class="scroll-bar"onclick="toggleScroll()">
+    <div class="scroll-bar-left">
+      <span class="scroll-bar-icon"></span>
+      <span class="scroll-bar-title">回廊记事</span>
+      <span class="scroll-bar-hint">从灰壤中拾得的碎片</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="scroll-bar-badge"id="scrollBadge">0</span>
+      <span class="scroll-bar-toggle">▲</span>
+    </div>
+  </div>
+  <div class="scroll-body"id="scrollBody">
+    <div class="scroll-list"id="scrollList">
+      <div class="scroll-empty">记事会在远征中逐渐浮现...</div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg"id="modalBg"><div class="modal"id="modalBox"></div></div>
+<div class="toast"id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   梦境回廊· 灰壤门· V8 完整实装
+   依据：output/brief-compose/梦境回廊-完整设定集-v8.html
+   ============================================================ */
+
+// ---------- 资源定义 ----------
+const RES = {
+  belief:{n:"信念",i:"信"},build:{n:"建材",i:"建"},food:{n:"粮食",i:"粮"},iron:{n:"灰铁",i:"铁"},seed:{n:"种核",i:"种"},crystal:{n:"壤晶",i:"晶"},steel:{n:"钢铁",i:"钢"},alloy:{n:"合金钢",i:"合"},chem:{n:"化工原料",i:"化"},power:{n:"电力",i:"电"},ammo:{n:"弹药",i:"弹"},concrete:{n:"混凝土",i:"混"},plastic:{n:"塑料",i:"塑"},optics:{n:"光学玻璃",i:"玻"},chip:{n:"芯片",i:"芯"},carbon:{n:"碳纤维",i:"碳"},magnet:{n:"稀土磁体",i:"磁"},nuclear:{n:"核燃料",i:"核"},glassF:{n:"恒昼光学玻璃",i:"恒"},polyF:{n:"同调聚合物",i:"聚"},superF:{n:"共鸣超导体",i:"共"},relics:{n:"灰体遗骸",i:"遗"},tissue:{n:"灰体组织",i:"组"}
+};
+const RES_ORDER = Object.keys(RES);
+const BASE_RES = ["belief","build","food"];
+// 数值体系：S=1，产出/成本均为每秒整数（S 保留为缩放兼容位，存档 scale=3）
+const S = 1;
+
+// ---------- 兵种定义 ----------
+const UNITS = {
+  shield:{ n:"持盾者",power:8,cost:{belief:15,food:8},era:1,desc:"基础防御，灰体怕光"},spear:{ n:"长矛手",power:15,cost:{belief:35,food:20},era:1,desc:"中程输出，第一支灰铁矛"},pioneer:{ n:"垦荒者",power:25,cost:{belief:60,food:40,seed:10},era:1,desc:"农战特攻：出征战力+50%/人·驻地粮产+10%"},guardian:{ n:"炉火卫士",power:60,cost:{belief:150,food:100,iron:20},era:2,desc:"全队光环：全军战力+15%/人",aura:0.15 },rifle:{ n:"灰铁步枪手",power:60,cost:{belief:120,food:80,steel:30,ammo:10},era:2,ammoUse:1,desc:"T2 火器代差，消耗弹药"},armor:{ n:"曙光动力甲",power:150,cost:{belief:300,food:200,steel:100,chip:20},era:3,ammoUse:2,powerUse:1,desc:"T3 动力装甲，耗电维护，需火控计算机"},hengwei:{ n:"恒昼卫",power:300,cost:{belief:600,food:400,glassF:15,chip:10},era:4,desc:"融合兵种：光环免疫褪色，全军战力+10%/人",aura:0.10 },mortar:{ n:"共鸣炮兵",power:400,cost:{belief:800,food:500,superF:10,magnet:20},era:4,powerUse:4,desc:"T4 融合重炮：一炮清屏式群伤，0.3电/s"},
+  hound:{ n:"灰犬驯手",power:12,cost:{belief:40,food:25},era:1,desc:"巡逻特攻：巡逻战力 +20%/人",patrolAura:0.20 },
+  sapper:{ n:"破障工兵",power:45,cost:{belief:160,food:100,iron:15},era:2,desc:"攻坚手：出征战力 +12%/人，无视弹药",assaultAura:0.12 },
+  medic:{ n:"战地医师",power:30,cost:{belief:200,food:140,chem:10},era:3,desc:"全队疗伤 +25%/人",healAura:0.25 },
+  gunship:{ n:"旋翼炮艇",power:220,cost:{belief:400,food:250,steel:80,chip:30},era:3,ammoUse:2,powerUse:2,desc:"T3 空中火力：高战力，耗电耗弹" },
+  voidguard:{ n:"虚相卫士",power:500,cost:{belief:700,food:450,polyF:10,crystal:30},era:4,desc:"融合近卫：全军战力 +12%/人，免疫褪色",aura:0.12 },
+  fission:{ n:"裂变行者",power:900,cost:{belief:1200,food:700,nuclear:8,superF:5},era:5,powerUse:3,desc:"T5 核能重甲：全军战力 +15%/人，耗核能",aura:0.15 }
+};
+const UNIT_ORDER = Object.keys(UNITS);
+
+// ---------- 英雄装备系统（8 槽 × 5 品级） ----------
+const EQUIP_SLOTS = [
+  {id:"weapon",n:"武器"},{id:"helmet",n:"头盔"},{id:"armor",n:"护甲"},{id:"boots",n:"战靴"},
+  {id:"gloves",n:"护手"},{id:"cloak",n:"披风"},{id:"amulet",n:"护符"},{id:"ring",n:"指环"}
+];
+const EQUIP_Q = [
+  {id:"common",n:"白",mul:1,cls:"q0"},
+  {id:"uncommon",n:"绿",mul:1.6,cls:"q1"},
+  {id:"rare",n:"蓝",mul:2.5,cls:"q2"},
+  {id:"epic",n:"紫",mul:4,cls:"q3"},
+  {id:"legend",n:"金",mul:6.5,cls:"q4"}
+];
+const EQUIP_BASE = 8; // 白装基础战力
+const HERO_MAX = 10;
+const TROOP_BATCH = [1,10,50];
+function makeEquip(slot, tier, lv){
+  const q = EQUIP_Q[tier];
+  const slDef = EQUIP_SLOTS.find(x=>x.id===slot) || {n:slot};
+  return { slot, tier, cls:q.cls, power:Math.max(1,Math.round(EQUIP_BASE*q.mul*(1+0.2*(lv-1)))), name:q.n+"·"+slDef.n };
+}
+function freshEquip(lv){ return EQUIP_SLOTS.map(sl=>makeEquip(sl.id,0,lv)); }
+function equipDrop(lv, depth){
+  if(Math.random() > 0.4) return null; // 六成空手，四成掉装
+  const slot = Math.floor(Math.random()*EQUIP_SLOTS.length);
+  const r = Math.random() + depth*0.055;
+  let tier = 0;
+  if(r>0.95) tier=4; else if(r>0.78) tier=3; else if(r>0.53) tier=2; else if(r>0.27) tier=1;
+  return makeEquip(EQUIP_SLOTS[slot].id, tier, lv);
+}
+function autoEquip(hero, drop){
+  if(!drop || !hero) return false;
+  if(!hero.equip) hero.equip = freshEquip(hero.lv||1);
+  const idx = EQUIP_SLOTS.findIndex(x=>x.id===drop.slot);
+  if(idx<0) return false;
+  const cur = hero.equip[idx];
+  if(!cur || drop.power>cur.power){
+    hero.equip[idx] = drop;
+    addLog(hero.name+"换上"+drop.name+"（战力+"+drop.power+"）","good");
+    return true;
+  }
+  return false;
+}
+
+// ---------- 土地定义（十二块故土） ----------
+const LANDS = [
+  { name:"荒村田垄",zone:"边缘",power:15,cost:{food:10},reward:{seed:6,belief:30,build:50},landRate:{seed:1},lore:"第一垄绿",loreText:"陶罐里的种核还活着。第七天早上田里冒出一点绿，五个人蹲在田埂上看了整整一个早晨。领队说：「够了，这就够我们活下去了。」",set:"教程关。垄沟里翻出装着种核的陶罐——这个世界的春天没死透"},{ name:"旧城苗圃",zone:"边缘",power:40,cost:{food:30,belief:20,seed:5},reward:{seed:12,belief:80,food:60},landRate:{seed:1},lore:"褪色的秩序",loreText:"苗房记录写着：「今年花没有开。不是枯了——是没开。」褪色是秩序：先是不能生长，再是不能改变，最后是不能记得。",set:"苗床还在，种子罐没开封——这个世界欠自己的春天，从这里还起"},{ name:"街心花园",zone:"边缘",power:110,cost:{food:50,belief:50},reward:{belief:80,food:40},landRate:{},lore:"等春天的人",loreText:"站桩死者守着花坛几十年。远征队把花坛原来的名字重新刻上小碑——第二天，他朝花坛挪了半步。",set:"站桩死者守着花坛不动。把花坛原来的名字重新刻上小碑，他就挪了半步"},{ name:"河湾平地",zone:"腹地",power:150,cost:{food:100,belief:100},reward:{food:200,iron:15,belief:200},landRate:{iron:1},lore:"大地的心跳",loreText:"守夜的人说，土地深处偶尔能听见极远、极沉的声响——像这片大地缓慢的心跳重新开始。灰铁在湾底沉成层，世界正在把自己重新记起来。",set:"河还没褪色，湾里的土是湿的。河床冲下来的灰铁在湾底沉成层"},{ name:"旧镇广场",zone:"腹地",power:500,cost:{food:200,belief:200,iron:10},reward:{build:300,iron:10,belief:400,crystal:5},landRate:{crystal:1},lore:"刻字的砖",loreText:"广场地砖下翻出旧城的界碑：「此处为第七区边界，立碑为证。」落款的名字后面刻着一行小字：「勿忘」。他们没忘，只是被忘掉了。",set:"广场中央聚集的灰体群——第一次要打硬仗。广场地砖下开始凝出壤晶"},{ name:"褪色之心",zone:"深处",power:1600,cost:{food:600,belief:600,iron:40},reward:{belief:2000,crystal:15},landRate:{crystal:1},lore:"世界停止褪色",loreText:"第六块地开垦完那天，田里的绿连成片，褪色停了——旧文明记录里这叫「不可能」。",set:"世界褪色最重处，无具体形态，纯氛围战。收复后田里的绿连成片，褪色停了"},
+  { name:"灰烬车站",zone:"深处",power:2800,cost:{food:300,belief:300,iron:30},reward:{belief:1200,build:600,relics:5},landRate:{relics:1},lore:"最后一班车",loreText:"站台电子牌还亮着，滚动的终点站名字已经褪成一排横线。列车没有来过，但有人一直在等——等到自己也站成了站牌。",set:"锈轨穿过候车厅，售票窗口里卡着半张没撕完的车票"},
+  { name:"沉没地铁",zone:"深处",power:5000,cost:{food:500,belief:500,steel:40},reward:{belief:2000,chem:80,crystal:20},landRate:{chem:2},lore:"地下的 tide",loreText:"隧道里有水，水位每天涨一寸，又退一寸。像某种缓慢的呼吸。测量员说这不是潮汐——是这片土地还记得海。",set:"站台沉在水下半米，指示灯在水面下亮着幽绿的光"},
+  { name:"静默医院",zone:"深处",power:8000,cost:{food:700,belief:700,chem:30},reward:{belief:3000,tissue:20,crystal:30},landRate:{tissue:1},lore:"病历上的人",loreText:"病历写着：「患者拒绝被遗忘。」后面一整页只有这一行，反复写了几百遍。字迹越来越淡，最后一笔却很重——像是用尽全部力气留下的。",set:"病房门牌整齐排列，每个房间都空着，只有病历还摊在床上"},
+  { name:"旧世界电台",zone:"核心",power:12000,cost:{food:1000,belief:1000,chip:30},reward:{belief:4500,relics:20,crystal:50},landRate:{relics:2},lore:"还在播的声音",loreText:"电台在无人值守的情况下播了几十年。内容是天气、农时、和一段反复播放的童谣。褪色带走了听众，没带走节目——世界忘记了怎么听，没忘记怎么唱。",set:"发射塔顶端还亮着红灯，控制室的磁带机转到最后一圈"},
+  { name:"环形城墙",zone:"核心",power:18000,cost:{food:1500,belief:1500,alloy:50},reward:{belief:7000,crystal:100,superF:10},landRate:{crystal:3},lore:"围城的尽头",loreText:"城墙是旧文明最后围起来的地方。墙内的人以为守住了文明，墙外的人以为守住了自由。灰体来的时候，两边才明白——他们守的其实是同一个东西。",set:"墙面上刻满名字，最上面一行是：「留给后来者」"},
+  { name:"褪色之眼",zone:"核心",power:26000,cost:{food:2200,belief:2200,nuclear:15},reward:{belief:12000,relics:50,crystal:150},landRate:{relics:3},lore:"世界的瞳孔",loreText:"站在这里能看见整片灰壤的褪色边界，像一道缓慢收拢的光圈。领队说：我们不是来打败它的，是来让它看见——这里还有人在。",set:"没有建筑，没有灰体群，只有一片缓慢旋转的灰。远征队站进去，像站进世界的眼睛"}
+];
+// 巡逻缴获模板（按地块深度）
+const PATROL_LOOT = [
+  {food:6,belief:6},{food:8,seed:2},{belief:12,build:6},{iron:2,food:10},{iron:2,crystal:1,build:12},{crystal:2,belief:30},
+  {relics:1,belief:40},{chem:3,belief:60},{tissue:2,belief:80},{relics:2,belief:120},{crystal:4,belief:180},{relics:3,crystal:5,belief:260}
+];
+
+// ---------- 研究定义（26 项） ----------
+// era:纪元 / pre:前置 / t:秒 / cost:{belief,food} / fx:效果键
+const RESEARCH = [
+  { id:"firework",era:1,n:"炉火管理学",t:90,cost:{belief:50,food:30},pre:[],d:"信念产出 +10%"},{ id:"agri",era:1,n:"基础农学",t:120,cost:{belief:60,food:40},pre:[],d:"田垄产量 +15%"},{ id:"sentryry",era:1,n:"哨戒术",t:120,cost:{belief:60,food:30},pre:[],d:"武装哨所造价 -20%· 解锁了望台"},{ id:"metall",era:2,n:"冶金学",t:300,cost:{belief:150,food:80},pre:[],d:"熔炉可建· 开启冶金线"},{ id:"rifling",era:2,n:"膛线工艺",t:480,cost:{belief:200,food:100},pre:["metall"],d:"解锁铸兵坊与灰铁步枪手"},{ id:"forging",era:2,n:"灰铁锻造学",t:600,cost:{belief:220,food:110},pre:["metall"],d:"熔炉（钢铁）产率 +25%"},{ id:"logi",era:2,n:"后勤体系学",t:480,cost:{belief:180,food:120},pre:["agri"],d:"全军粮耗 -10%"},{ id:"niter",era:2,n:"硝化化学",t:360,cost:{belief:200,food:90},pre:["metall"],d:"解锁硝化车间· 步枪战力 +15%（弹药配属）"},{ id:"elec",era:3,n:"电气工程学",t:600,cost:{belief:300,food:150},pre:[],d:"解锁火电厂"},{ id:"gridt",era:3,n:"电网架构学",t:900,cost:{belief:350,food:160},pre:["elec"],d:"解锁电网"},{ id:"arcsmelt",era:3,n:"电弧冶炼学",t:1080,cost:{belief:400,food:180},pre:["gridt"],d:"解锁电弧冶炼厂"},{ id:"lighteng",era:3,n:"灯火工程学",t:1200,cost:{belief:420,food:200},pre:["elec"],d:"灯火复明：全资源产出 +10%"},{ id:"silicate",era:3,n:"硅酸盐学",t:600,cost:{belief:300,food:140},pre:[],d:"解锁水泥窑· 工事使驻防阵亡率 -20%"},{ id:"polymer",era:3,n:"聚合化学",t:720,cost:{belief:350,food:150},pre:[],d:"解锁聚合厂· 硝化车间升级无烟火药 +50%"},{ id:"opticsE",era:3,n:"光学工程学",t:900,cost:{belief:380,food:160},pre:["polymer"],d:"解锁精密光学所"},{ id:"semi",era:3,n:"半导体学",t:900,cost:{belief:420,food:180},pre:[],d:"解锁半导体厂"},{ id:"firectrl",era:3,n:"火控计算机",t:1200,cost:{belief:480,food:200},pre:["semi"],d:"动力甲战力 +15%· 自动化农场前置"},{ id:"magnetE",era:4,n:"稀土冶金学",t:720,cost:{belief:500,food:250},pre:["arcsmelt"],d:"解锁稀土精炼厂"},{ id:"storage",era:4,n:"储能工程",t:900,cost:{belief:520,food:260},pre:["semi"],d:"解锁储能站"},{ id:"supercon",era:4,n:"超导理论",t:1800,cost:{belief:700,food:320},pre:["magnetE"],d:"解锁能量融合车间"},{ id:"fade",era:4,n:"褪色逆转学",t:2700,cost:{belief:800,food:400,relics:50,crystal:100},pre:["lighteng"],d:"解锁光学融合车间与恒昼灯塔（褪色逆转链）"},{ id:"sync",era:4,n:"灰体同调学",t:2700,cost:{belief:800,food:400,tissue:30},pre:["lighteng"],d:"解锁生物融合车间与停滞仓（灰体同调链）"},{ id:"reson",era:4,n:"壤晶共鸣学",t:2700,cost:{belief:800,food:400,crystal:150},pre:["supercon"],d:"解锁共鸣塔与共鸣炮兵（壤晶共鸣链）"},{ id:"fission",era:5,n:"裂变理论",t:3600,cost:{belief:1200,food:600},pre:["anyFusion"],d:"解锁核反应堆"},{ id:"matrix",era:5,n:"荣光矩阵学",t:5400,cost:{belief:1600,food:800},pre:["fission"],d:"解锁荣光矩阵· 荣光值获取 ×1.5"},{ id:"gatem",era:5,n:"门力学",t:7200,cost:{belief:2000,food:1000},pre:["matrix"],d:"换门荣光阈值 -20%"},
+  // ===== 建筑升级研究：研究完成即把对应建筑提升到指定等级（全局生效，含后续新建） =====
+  { id:"up_tent3",era:1,n:"编制扩容",t:180,cost:{belief:70,food:40},pre:[],up:{b:"tent",lv:3},d:"帐篷营地升至 Lv3 · 营地扩建"},
+  { id:"up_field3",era:1,n:"轮作制",t:180,cost:{belief:70,food:40},pre:["agri"],up:{b:"field",lv:3},d:"田垄采集点升至 Lv3 · 产量 +25%"},
+  { id:"up_quarry3",era:1,n:"破碎工艺",t:180,cost:{belief:70,food:40},pre:[],up:{b:"quarry",lv:3},d:"碎石场升至 Lv3 · 产量 +25%"},
+  { id:"up_sentry3",era:1,n:"巡逻半径",t:240,cost:{belief:90,food:50},pre:["sentryry"],up:{b:"sentry",lv:3},d:"武装哨所升至 Lv3 · 巡逻战力 +10%"},
+  { id:"up_furnace3",era:2,n:"合金配比",t:420,cost:{belief:180,food:90},pre:["forging"],up:{b:"furnace",lv:3},d:"熔炉升至 Lv3 · 钢铁产率 +30%"},
+  { id:"up_barracks3",era:2,n:"营房扩建",t:360,cost:{belief:160,food:90},pre:[],up:{b:"barracks",lv:3},d:"营房升至 Lv3 · 医疗扩容"},
+  { id:"up_academy3",era:2,n:"研究编组",t:480,cost:{belief:200,food:100},pre:[],up:{b:"academy",lv:3},d:"研究院升至 Lv3 · 研究队列 +1"},
+  { id:"up_tent5",era:2,n:"军事学院",t:600,cost:{belief:240,food:120},pre:["up_tent3"],up:{b:"tent",lv:5},d:"帐篷营地升至 Lv5 · 新兵入队即 Lv2"},
+  { id:"up_sentry5",era:2,n:"碉堡化",t:600,cost:{belief:240,food:120},pre:["up_sentry3"],up:{b:"sentry",lv:5},d:"武装哨所升至 Lv5 · 阵亡概率减半"},
+  { id:"up_field5",era:3,n:"自动化农场",t:720,cost:{belief:340,food:160},pre:["firectrl","up_field3"],up:{b:"field",lv:5},d:"田垄采集点升至 Lv5 · 粮产 ×3"},
+  { id:"up_quarry5",era:3,n:"电弧料场",t:720,cost:{belief:340,food:160},pre:["elec","up_quarry3"],up:{b:"quarry",lv:5},d:"碎石场升至 Lv5 · 产量 ×2"},
+  { id:"up_furnace5",era:3,n:"连铸产线",t:900,cost:{belief:400,food:180},pre:["arcsmelt","up_furnace3"],up:{b:"furnace",lv:5},d:"熔炉升至 Lv5 · 电弧冶炼厂产能 ×2"},
+  { id:"up_arcsm5",era:3,n:"连铸联动",t:900,cost:{belief:400,food:180},pre:["arcsmelt"],up:{b:"arcsm",lv:5},d:"电弧冶炼厂升至 Lv5 · 产能 ×2"},
+  { id:"up_barracks5",era:3,n:"战地医院",t:720,cost:{belief:340,food:160},pre:["up_barracks3"],up:{b:"barracks",lv:5},d:"营房升至 Lv5 · 疗伤速度 ×2"}
+];
+
+// ---------- 产业链：下游建筑由上游建筑供货，上游建成即产能提升 ----------
+// up = 上游建筑 id；bonus = 每座上游建筑带来的产能加成（上限 2 座）
+const CHAIN = {
+  furnace:{up:"ironmine",bonus:0.30}, nitersh:{up:"quarry",bonus:0.20},
+  coalplant:{up:"furnace",bonus:0.25}, arcsm:{up:"furnace",bonus:0.30},
+  chemp:{up:"quarry",bonus:0.15}, cement:{up:"quarry",bonus:0.15},
+  polym:{up:"chemp",bonus:0.25}, opticsp:{up:"polym",bonus:0.20},
+  carbonp:{up:"chemp",bonus:0.20}, semic:{up:"carbonp",bonus:0.25},
+  magnetp:{up:"ironmine",bonus:0.20}, optfuse:{up:"opticsp",bonus:0.25},
+  biofuse:{up:"polym",bonus:0.25}, engfuse:{up:"magnetp",bonus:0.25},
+  reactor:{up:"magnetp",bonus:0.20}, fuelfab:{up:"reactor",bonus:0.20}
+};
+function chainUpName(id){ const b=BUILDINGS.find(x=>x.id===id); return b?b.n:id; }
+function chainState(id){
+  const ch=CHAIN[id]; if(!ch) return null;
+  const n=G.B[ch.up]?G.B[ch.up].count:0;
+  return { name:chainUpName(ch.up), n:n, bonus:n>0?ch.bonus*Math.min(2,n):0 };
+}
+// ---------- 建筑定义（38 座） ----------
+// kind:basic/func/core/fused ; scale:1.35基础 1.50军工 1.70核心 ; era:纪元
+// prod:每座产出/s（×1.6^(Lv-1)）; conv:转化 {in:{},out:{}}
+// req:{res:研究id} / {land:idx} / 无
+const BUILDINGS = [
+  // ===== T1 农耕纪元 =====
+  { id:"altar",era:1,kind:"core",n:"祈念坛",i:"坛",effect:"信念 +3/s",cost:{belief:20,build:15},prod:null,glory:20,onBuilt:"altar",lore:{tag:"lore",t:"祈念坛点燃",x:"坛火点燃的那一刻，灰壤的风突然变了方向。火光是金色的。\n\n坛边有人低声说了句：「值了。」"} },{ id:"tent",era:1,kind:"basic",n:"帐篷营地",i:"营",effect:"营地核心· 安置巡逻士兵",cost:{belief:10,build:15,food:10},glory:15,lv3:"营地扩建：新兵招募品质提升",lv5:"军事学院：新兵招募即 Lv2",lore:{tag:"build",t:"帐篷营地",x:"灰壤没有真正的黑夜。帐篷区外围的灰体数量增加了，它们不靠近，只是站在边缘。"} },{ id:"field",era:1,kind:"basic",n:"田垄采集点",i:"田",effect:"粮食 +2/s· 种核 +1/s",cost:{belief:20,build:15},prod:{food:2,seed:1},glory:10,lv3:"轮作制：产量再 +25%",lv5:"自动化农场：粮产 ×3（需火控计算机）",lore:{tag:"build",t:"田垄采集点",x:"第一块田翻好的时候，土是温的。田垄边上有一具灰体，蹲姿，面朝田地方向。"} },{ id:"quarry",era:1,kind:"basic",n:"碎石场",i:"矿",effect:"建材 +2/s",cost:{belief:15,build:10},prod:{build:2},glory:10,lv3:"破碎工艺：产量 +25%",lv5:"电弧料场：产量 ×2（需电气纪元）",lore:{tag:"build",t:"碎石场",x:"碎石场选在一处旧城墙遗址旁边。墙基里翻出一块刻了字的砖：「此处为第七区边界，立碑为证。」"} },{ id:"sentry",era:1,kind:"func",n:"武装哨所",i:"哨",effect:"解锁持盾者· 每座全军战力 +3%",cost:{belief:30,build:30,food:15},unlockU:["shield"],glory:25,lv3:"巡逻半径 +1：巡逻战力 +10%",lv5:"碉堡化：阵亡概率减半",onBuilt:"unlockU",lore:{tag:"lore",t:"武装哨所",x:"哨所立起来的第一天，持盾者小队在顶上挂了一盏灯。灰体怕光。"} },{ id:"spearwk",era:1,kind:"func",n:"矛刃维护所",i:"矛",effect:"解锁长矛手· 每座全军战力 +3%",cost:{belief:60,build:40,food:30},unlockU:["spear"],glory:25,onBuilt:"unlockU",lore:{tag:"lore",t:"矛刃维护所",x:"第一支长矛从灰铁里锻出来，矛刃上有一道纹路，像血管。"} },{ id:"watchtw",era:1,kind:"func",n:"了望台",i:"望",effect:"巡逻战力 +8%/座· 遇敌预警 +15s",cost:{belief:30,build:25},req:{res:"sentryry"},glory:10 },// ===== T2 铁工纪元 =====
+  { id:"academy",era:1,kind:"core",n:"研究院",i:"院",effect:"解锁科技研究（铁工纪元核心）",cost:{belief:120,build:80,iron:30},glory:60,onBuilt:"era2",lore:{tag:"lore",t:"研究院",x:"领队把现代社会带来的教科书搬进帐篷：「我们缺的不是知识，是把知识重新变成东西的产线。」"} },{ id:"ironmine",era:1,kind:"basic",n:"灰铁矿场",i:"铁",effect:"灰铁 +1/s（需收复河湾平地）",cost:{belief:60,build:50},prod:{iron:1},req:{land:3},glory:15 },{ id:"furnace",era:2,kind:"basic",n:"熔炉",i:"熔",effect:"灰铁2/s+建材3/s → 钢铁3/s",cost:{belief:80,build:60,iron:25},conv:{in:{iron:2,build:4},out:{steel:4}},req:{res:"metall"},glory:20,lv3:"合金配比：钢铁产率 +30%",lv5:"连铸产线：电弧冶炼厂产能 ×2"},{ id:"nitersh",era:2,kind:"basic",n:"硝化车间",i:"硝",effect:"建材2/s+灰铁1/s → 弹药2/s",cost:{belief:90,build:55,iron:20},conv:{in:{build:2,iron:1},out:{ammo:2}},req:{res:"niter"},glory:15,lv5:"无烟火药（聚合化学后自动升级）：产率 +50%"},{ id:"foundry",era:2,kind:"func",n:"铸兵坊",i:"铸",effect:"解锁灰铁步枪手· 弹药配属",cost:{belief:100,steel:40},unlockU:["rifle"],req:{res:"rifling"},glory:25,onBuilt:"unlockU"},{ id:"barracks",era:2,kind:"basic",n:"营房",i:"房",effect:"疗伤位 +2· 老兵编制入口",cost:{belief:70,build:55,steel:30},glory:20,lv3:"医疗扩容：疗伤位 +2",lv5:"军医院：疗伤速度 ×2"},{ id:"depot",era:2,kind:"func",n:"货运栈",i:"运",effect:"离线收益效率 +10%/座",cost:{belief:60,build:45},glory:15 },// ===== T3 电气纪元 =====
+  { id:"coalplant",era:3,kind:"basic",n:"火电厂",i:"电",effect:"钢铁1/s → 电力 +6/s",cost:{belief:150,steel:60},conv:{in:{steel:1},out:{power:6}},req:{res:"elec"},glory:25 },{ id:"grid",era:3,kind:"core",n:"电网",i:"网",effect:"唯一· 电力统一调度· 解锁全部耗电建筑",cost:{belief:200,steel:100},req:{res:"gridt"},glory:40,onBuilt:"gridOn",lore:{tag:"lore",t:"电网贯通",x:"合闸那一刻，整片营地的灯同时亮了。灰体在光边缘停住——它们很久没见过这么大的亮。"} },{ id:"arcsm",era:3,kind:"basic",n:"电弧冶炼厂",i:"冶",effect:"钢铁2/s+电2/s → 合金钢3/s",cost:{belief:180,steel:80,power:20},conv:{in:{steel:2,power:2},out:{alloy:3}},req:{res:"arcsmelt"},glory:25,lv5:"与熔炉连铸联动：产能 ×2"},{ id:"chemp",era:3,kind:"basic",n:"化工联合体",i:"工",effect:"建材4/s+粮食2/s → 化工原料3/s",cost:{belief:160,build:90,steel:50},conv:{in:{build:4,food:2},out:{chem:3}},glory:25 },{ id:"cement",era:3,kind:"basic",n:"水泥窑",i:"泥",effect:"建材4/s+灰铁1/s → 混凝土3/s",cost:{belief:130,build:80,steel:40},conv:{in:{build:4,iron:1},out:{concrete:3}},req:{res:"silicate"},glory:15 },{ id:"polym",era:3,kind:"basic",n:"聚合厂",i:"聚",effect:"化工2/s+电1/s → 塑料2/s",cost:{belief:170,chem:50,power:20},conv:{in:{chem:2,power:1},out:{plastic:2}},req:{res:"polymer"},glory:20 },{ id:"opticsp",era:3,kind:"basic",n:"精密光学所",i:"光",effect:"塑料1/s+化工1/s → 光学玻璃1/s",cost:{belief:180,plastic:40,power:25},conv:{in:{plastic:1,chem:1},out:{optics:1}},req:{res:"opticsE"},glory:20 },{ id:"carbonp",era:3,kind:"basic",n:"碳纤维厂",i:"碳",effect:"化工2/s+电1/s → 碳纤维2/s",cost:{belief:200,chem:60,power:30},conv:{in:{chem:2,power:1},out:{carbon:2}},glory:25 },{ id:"semic",era:3,kind:"basic",n:"半导体厂",i:"芯",effect:"塑料1/s+建材1/s+电2/s → 芯片1/s",cost:{belief:220,carbon:30,power:40},conv:{in:{plastic:1,build:1,power:2},out:{chip:1}},req:{res:"semi"},glory:30 },{ id:"radio",era:3,kind:"func",n:"无线电哨",i:"讯",effect:"巡逻战力 +15%/座· 预警 +30s",cost:{belief:140,steel:60},glory:20 },// ===== T4 融合纪元 =====
+  { id:"facademy",era:3,kind:"core",n:"融合研究院",i:"融",effect:"唯一· 解锁三条融合链异界科技研究（融合纪元核心）",cost:{belief:400,alloy:80,carbon:50},glory:60,onBuilt:"era4check",lore:{tag:"lore",t:"融合研究院",x:"第一堂课领队只写了一行板书：「现实工程学 × 灰壤法则 = 两个世界都没有的东西。」"} },{ id:"magnetp",era:4,kind:"basic",n:"稀土精炼厂",i:"磁",effect:"灰铁2/s+电2/s → 稀土磁体1/s（腹地×2）",cost:{belief:280,alloy:60,power:40},conv:{in:{iron:2,power:2},out:{magnet:1}},req:{res:"magnetE"},glory:25 },{ id:"optfuse",era:4,kind:"fused",n:"光学融合车间",i:"恒",effect:"光学玻璃1/s+壤晶1/s → 恒昼光学玻璃1/s",cost:{belief:350,optics:60,power:40},conv:{in:{optics:1,crystal:1},out:{glassF:1}},req:{res:"fade"},glory:30 },{ id:"biofuse",era:4,kind:"fused",n:"生物融合车间",i:"同",effect:"塑料1/s+灰体组织1/s → 同调聚合物1/s",cost:{belief:300,plastic:50,power:30},conv:{in:{plastic:1,tissue:1},out:{polyF:1}},req:{res:"sync"},glory:30 },{ id:"engfuse",era:4,kind:"fused",n:"能量融合车间",i:"鸣",effect:"稀土磁体1/s+壤晶1/s+电4/s → 共鸣超导体1/s",cost:{belief:400,magnet:40,power:50},conv:{in:{magnet:1,crystal:1,power:4},out:{superF:1}},req:{res:"supercon"},glory:30 },{ id:"lighth",era:4,kind:"fused",n:"恒昼灯塔",i:"塔",effect:"全资源产出 +15%/座 · 运转耗电2/s",cost:{belief:600,glassF:40,power:100},glory:50 },{ id:"stasis",era:4,kind:"fused",n:"停滞仓",i:"滞",effect:"疗伤速度 ×1.5/座· 离线效率 +10%/座",cost:{belief:400,polyF:30,relics:30},glory:40 },{ id:"resotw",era:4,kind:"fused",n:"共鸣塔",i:"振",effect:"信念产出 +50%/座· 与祈念坛叠加",cost:{belief:500,superF:30,crystal:80},glory:40 },{ id:"warmill",era:4,kind:"func",n:"恒昼兵工厂",i:"兵",effect:"解锁曙光动力甲· 恒昼卫与共鸣炮兵的装备线",cost:{belief:300,carbon:40,chip:20},glory:40 },{ id:"battery",era:4,kind:"func",n:"储能站",i:"储",effect:"电力产率 +15%/座",cost:{belief:260,chip:30,alloy:50},req:{res:"storage"},glory:20 },// ===== T5 核能纪元 =====
+  { id:"reactor",era:5,kind:"basic",n:"核反应堆",i:"核",effect:"壤晶1/s → 核燃料1/s· 电力 +36/s",cost:{belief:600,alloy:150,magnet:60},conv:{in:{crystal:1},out:{nuclear:1,power:36}},req:{res:"fission"},glory:60 },{ id:"fuelfab",era:5,kind:"func",n:"燃料棒车间",i:"燃",effect:"核燃料产率 ×2",cost:{belief:400,alloy:100,chip:30},glory:30 },{ id:"gmatrix",era:5,kind:"core",n:"荣光矩阵",i:"矩阵",effect:"唯一· 荣光值获取 ×1.5· 信念 +6/s",cost:{belief:800,magnet:60,chip:30,nuclear:20},req:{res:"matrix"},glory:100,onBuilt:"matrixOn",lore:{tag:"glory",t:"荣光矩阵",x:"矩阵亮起的那一刻，荣光值像潮水一样涨。守夜人说，大地的心跳声变清晰了——它记得我们。"} },{ id:"gatehub",era:5,kind:"core",n:"门廊枢纽",i:"门",effect:"唯一· 换门远征集结（推门的必要设施）",cost:{belief:1000,alloy:100,magnet:60,nuclear:50},glory:80,onBuilt:"hubOn"},{ id:"beacon",era:5,kind:"core",n:"灰壤之芽·信标",i:"标",effect:"核心唯一· 粮食产量+15%· 荣光+20000· 建成后+6荣光/s",cost:{belief:3000,build:2500,steel:500,crystal:50},glory:200,req:{land:5},hidden:true,onBuilt:"beaconOn"}
+];
+
+// ---------- 回廊记事（8 段定稿） ----------
+const LORE8 = [
+  { key:"start",t:"踏入灰壤门",x:"门开的时候，风是灰的。领队站了很久：「这里死过，但没埋。」回头看了看队伍：「干吧。」"},{ key:"land0",t:"第一垄绿",x:"陶罐里的种核还活着。第七天早上田里冒出一点绿，五个人蹲在田埂上看了整整一个早晨。领队说：「够了，这就够我们活下去了。」"},{ key:"land1",t:"褪色的秩序",x:"苗房记录写着：「今年花没有开。不是枯了——是没开。」褪色是秩序：先是不能生长，再是不能改变，最后是不能记得。"},{ key:"land2",t:"等春天的人",x:"站桩死者守着花坛几十年。远征队把花坛原来的名字重新刻上小碑——第二天，他朝花坛挪了半步。"},{ key:"land3",t:"大地的心跳",x:"守夜的人说，土地深处偶尔能听见极远、极沉的声响——像这片大地缓慢的心跳重新开始。灰铁在湾底沉成层，世界正在把自己重新记起来。"},{ key:"land4",t:"刻字的砖",x:"广场地砖下翻出旧城的界碑：「此处为第七区边界，立碑为证。」落款的名字后面刻着一行小字：「勿忘」。他们没忘，只是被忘掉了。"},{ key:"land5",t:"世界停止褪色",x:"第六块地开垦完那天，田里的绿连成片，褪色停了——旧文明记录里这叫「不可能」。"},{ key:"beacon",t:"为了人类的荣光",x:"信标立起的那一刻，光柱冲天而起，是嫩绿。领队说：「为了人类的荣光。下一扇门。」"}
+];
+
+// ---------- 主线故事背景（按进度解锁，出现在回廊记事） ----------
+const STORY = [
+  { key:"gate",t:"第一章· 门后不是梦",cond:()=>true,x:"第一支远征队穿过门时都以为自己在做梦。直到有人被灰体抓伤了手臂——血是红的，疼也是真的。\n\n门后不是梦境，是真实的世界。「我们」的世界在很久以后的模样：文明褪成了灰，土地忘记了怎么生长。\n\n领队在远征手册扉页写下一行字：门后的每一扇门，都是人类末日的一段回声。我们去那里，不是为了猎奇——是为了把人类的荣光，一寸一寸种回去。"},{ key:"camp",t:"第二章· 灰壤上的第一夜",cond:()=>(G.B.altar?G.B.altar.count:0)>0 && (G.B.tent?G.B.tent.count:0)>0 && (G.B.field?G.B.field.count:0)>0,x:"坛火、帐篷、田垄——三样东西立起来，这里就从「落脚点」变成了「营地」。\n\n夜里轮值的人报告：灰体不进攻，只围观。它们站在光能照到的最远处，一动不动，像在等什么。\n\n有人问：它们在等什么？\n\n领队想了很久：「等我们证明，活着不只是活着。」"},{ key:"spring",t:"第三章· 春天先回来",cond:()=>G.lands[0]&&G.lands[0].liberated,x:"荒村田垄收复的那天，没有人欢呼。\n\n远征队把陶罐里的种核埋进土里。第二天早上，土是温的。\n\n褪色从来不是从人开始的——是从土、是种子、是「能不能生长」开始的。所以复兴也不从钢铁开始，从春天开始。\n\n记录员在册子最后一页写：荣光计划· 第一步，让土地记起自己。"},{ key:"iron",t:"第四章· 铁与秩序",cond:()=>G.era>=2,x:"灰铁从河湾里捞上来的时候，比记忆里的铁更沉。\n\n熔炉第一次点火，铁水映红了半边营地。有人发现，灰体在铁水映出的光前面退了半步——它们怕的不是光，是「正在被重新制造的世界」。\n\n研究院的墙上钉了一张纸：农耕让我们活下来，工业让我们夺回主动权。\n\n文明的骨架，从今天开始重新长。"},{ key:"light",t:"第五章· 灯火复明",cond:()=>G.era>=3 && G.gridOn,x:"合闸的那个傍晚，整片营地的灯同时亮起。\n\n灰体第一次后退。不是被击退的——是它们自己退的，退到光的边界之外，很久没有再靠近。\n\n电网轰鸣的声音里，守夜人记录：这片土地已经很多年没有过「人造的光」了。光不是武器，光是记忆——是人类曾经把黑夜变成白昼的记忆。\n\n灯火复明，就是让世界想起来。"},{ key:"fusion",t:"第六章· 两个世界的学问",cond:()=>G.era>=4,x:"融合研究院的第一堂课，领队只写了一行板书：现实工程学 × 灰壤法则 = 两个世界都没有的东西。\n\n恒昼光学玻璃在夜里发光，同调聚合物记得形状，共鸣超导体让电网安静下来。它们不是现代科技的复刻，也不是异界法则的搬运——是「人」与「这个受伤的世界」商量出来的答案。\n\n记录员写道：复兴不是回去。复兴是带着伤痕，长出新的东西。"},{ key:"deep",t:"第七章· 深处的回答",cond:()=>G.lands[5]&&G.lands[5].liberated,x:"褪色之心被推平的那天，田里的绿连成了一片。\n\n旧文明记录里管这叫「不可能」。但站在田埂上的人都看见了：褪色停了。风里第一次有了植物的味道。\n\n大地深处那种极沉的心跳声，变得清晰了。\n\n领队说：它记得我们。不是记得我们是谁——是记得我们做过什么。荣光不是口号，是做出来的事，这个世界都记账。"},{ key:"glory5",t:"第八章· 荣光的形状",cond:()=>G.era>=5,x:"核反应堆启动的那天没有仪式。\n\n只有荣光矩阵在夜里的光，和一句被反复传看的话：我们要复现的不是末日前的人类——是末日前的人类「最值得被记住的样子」。\n\n荣光是什么？\n\n有人说是数据，有人说是火焰。守夜人说得最简单：荣光就是——世界愿意重新活一次。"},{ key:"nextdoor",t:"第九章· 下一扇门",cond:()=>G.gloryIdle,x:"信标的光柱是嫩绿色的，笔直地立在灰壤中央，像这个世界竖起的第一根脊椎。\n\n门廊枢纽里，回廊深处传来另一扇门的震颤——兽骨原。那里曾经有兽群，有骨骼垒成的山。\n\n领队在远征手册的最后一页写下：灰壤门· 已复现。春天回来了。\n\n下一扇门，我们带着这里的答案进去。"}
+];
+function checkStory() {
+  if(!G.storyShown) G.storyShown = {};
+  STORY.forEach(s=>{
+    if(G.storyShown[s.key]) return;
+    try {
+      if(s.cond()){ G.storyShown[s.key]=true; addScrollPage("story",s.t,s.x); }
+    } catch(e){}
+  });
+}
+
+const ERAS = [
+  { n:"T1 农耕纪元",icon:"",gate:null,gateDesc:"开局"},{ n:"T2 铁工纪元",icon:"",gate:"academy",gateDesc:"收复河湾平地 → 建灰铁矿场攒灰铁 → 建成研究院"},{ n:"T3 电气纪元",icon:"",gate:"t3",gateDesc:"熔炉 ×3 + 钢铁存量 ≥ 200"},{ n:"T4 融合纪元",icon:"",gate:"t4",gateDesc:"收复旧镇广场 + 建成融合研究院"},{ n:"T5 核能纪元",icon:"",gate:"t5",gateDesc:"融合建筑（灯塔/停滞仓/共鸣塔）×2 + 壤晶 ≥ 500"}
+];
+
+const WorldTabs = [
+  { id:0,name:"灰壤门",unlocked:true },{ id:1,name:"兽骨原",unlocked:false },{ id:2,name:"浮渊",unlocked:false },{ id:3,name:"归形之界",unlocked:false }
+];
+
+// ---------- 游戏状态 ----------
+const SAVE_KEY = "dreamCorridor_huirang_v7";
+let G = null;
+
+function freshState() {
+  return {
+    res:Object.fromEntries(Object.entries({
+      belief:12,build:8,food:6,iron:0,seed:0,crystal:0,steel:0,alloy:0,chem:0,power:0,ammo:0,concrete:0,plastic:0,optics:0,chip:0,carbon:0,magnet:0,nuclear:0,glassF:0,polyF:0,superF:0,relics:0,tissue:0
+    }).map(([k,v])=>[k,v*S])),era:1,time:0,glory:0,gloryIdle:false,matrixOn:false,gridOn:false,B:{},// 建筑状态 {count,lv}
+    R:{},// 研究 {done:bool,prog:0}
+    queue:[],// 研究队列 [id,...]
+    lands:LANDS.map((l,i)=>({ liberated:false,locked:i>0,patrol:[] })),soldiers:[],troops:{},nextSid:1,honorWall:[],scrollPages:[],unread:0,log:[],loreShown:{},storyShown:{},firstBuilt:{},unitUnlocked:{},expedition:null,// {land,ids,t}
+    offlineNote:""};
+}
+BUILDINGS.forEach(b=>G_init_B(b));
+function G_init_B(b){ if(!G) return; G.B[b.id]={count:0,lv:1}; }
+G = freshState();
+BUILDINGS.forEach(b=>{ G.B[b.id]={count:0,lv:1}; });
+RESEARCH.forEach(r=>{ G.R[r.id]={done:false,prog:0}; });
+
+// ---------- 存档 ----------
+function saveGame() {
+  try {
+    const data = JSON.stringify({ G,lastSave:Date.now(),v:7,scale:3 });
+    localStorage.setItem(SAVE_KEY,data);
+  } catch(e){}
+}
+function loadGame() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if(!raw) return false;
+    const data = JSON.parse(raw);
+    if(!data || data.v !== 7 || !data.G) return false;
+    const saved = data.G;
+    // 合并（防字段缺失）
+    const f = freshState();
+    BUILDINGS.forEach(b=>{ G_init_B(b); });
+    Object.assign(G,saved);
+    // 旧存档迁移：v7 原始数值 ×100 → 每秒整数体系
+    if(data.scale === 2 && saved.res){
+      Object.keys(G.res).forEach(k=>{ G.res[k] = Math.round((G.res[k]||0)/100); });
+      G.glory = Math.round((G.glory||0)/100);
+    }
+    BUILDINGS.forEach(b=>{ if(!G.B[b.id]) G.B[b.id]={count:0,lv:1}; });
+    RESEARCH.forEach(r=>{ if(!G.R[r.id]) G.R[r.id]={done:false,prog:0}; });
+    while(G.lands.length < LANDS.length) G.lands.push({liberated:false,locked:true,patrol:[]});
+    // V8b 迁移：新增普通士兵数字计数；英雄上限10，超出者折为普通士兵
+    if(!G.troops) G.troops = {};
+    if(Array.isArray(G.soldiers) && G.soldiers.length > HERO_MAX){
+      G.soldiers.forEach(s=>{ if(!s.equip) s.equip = freshEquip(s.lv||1); });
+      G.soldiers.sort((a,b)=>soldierPower(b)-soldierPower(a));
+      const extra = G.soldiers.slice(HERO_MAX);
+      G.soldiers = G.soldiers.slice(0,HERO_MAX);
+      extra.forEach(s=>{ G.troops[s.type] = (G.troops[s.type]||0)+1; });
+    }
+    if(!G.storyShown) G.storyShown = {};
+    // 离线收益
+    if(data.lastSave) {
+      const elapsed = Math.min((Date.now()-data.lastSave)/1000,12*3600);
+      if(elapsed > 60) {
+        const rates = computeRates(true);
+        const eff = offlineEff();
+        Object.keys(rates).forEach(k=>{
+          if(k==="power") return;
+          const gain = rates[k]*elapsed*eff;
+          if(gain>0) G.res[k]=(G.res[k]||0)+Math.floor(gain);
+        });
+        if(G.gloryIdle) G.glory += Math.floor(6*S*(G.matrixOn?1.5:1)*elapsed*eff);
+        G.offlineNote = "离线 "+ fmtDur(elapsed) + "，按 "+ Math.round(eff*100) + "% 效率补算收益";
+      }
+    }
+    return true;
+  } catch(e){ return false; }
+}
+function offlineEff() {
+  let e = 0.6;
+  e += 0.1 * (G.B.depot?G.B.depot.count:0);
+  e += 0.1 * (G.B.stasis?G.B.stasis.count:0);
+  if(G.era>=3) e += 0.15;
+  if(G.era>=5) e += 0.15;
+  return Math.min(0.95,e);
+}
+function fmtDur(s){ const h=Math.floor(s/3600),m=Math.floor(s%3600/60); return (h?h+"时":"")+(m?m+"分":"")+Math.floor(s%60)+"秒"; }
+function hardReset(){
+  showModal("清空存档","<div class='mtext'>将删除全部进度（建筑/资源/士兵/研究），且不可恢复。荣誉墙与记事也会清空。\n\n确定要清档吗？</div>",[{t:"取消",fn:closeModal},{t:"确认清档",cls:"primary",fn:()=>{ localStorage.removeItem(SAVE_KEY); location.reload(); }}]);
+}
+
+// ---------- 工具 ----------
+function showToast(msg,type="") {
+  const el = document.getElementById("toast");
+  el.textContent = msg; el.className = "toast show "+ type;
+  clearTimeout(el._t); el._t = setTimeout(()=>{ el.classList.remove("show"); },2200);
+}
+// 点击成功反馈：给指定 DOM 挂一次性闪光 class，动画结束自动移除
+function flashEl(el){
+  if(!el) return;
+  el.classList.remove("flash"); void el.offsetWidth; // 强制回流以便重复触发
+  el.classList.add("flash");
+  clearTimeout(el._f); el._f = setTimeout(()=>el.classList.remove("flash"),650);
+}
+function addLog(msg,cls) {
+  const t = Math.floor(G.time/60) + ":"+ String(G.time%60).padStart(2,"0");
+  G.log.unshift({ t:"["+t+"] "+msg,c:cls||""});
+  if(G.log.length>80) G.log.pop();
+}
+function timeStr(){ return Math.floor(G.time/60)+":"+String(G.time%60).padStart(2,"0"); }
+function addScrollPage(tag,title,text) {
+  // 回廊记事只承载故事主线（story）与世界观记事（lore）；战报/建造/启示/发现等归事件日志
+  if(tag!=="story" && tag!=="lore"){
+    addLog((title?title+"：":"")+text, tag==="combat"?"warn":tag==="glory"?"good":"");
+    return;
+  }
+  G.scrollPages.unshift({ tag,title,text,time:timeStr() });
+  if(G.scrollPages.length>100) G.scrollPages.pop();
+  G.unread++;
+  updateScrollBar();
+  if(document.getElementById("scrollPanel").classList.contains("expanded")) renderScrollList();
+}
+
+// ---------- 作弊模式（测试用，页面输入 nidemingzi 切换） ----------
+const CHEAT = {
+  key:"dreamcorridor_cheat",
+  seq:"nidemingzi",
+  buf:"",
+  cap:99999999,
+  on:false,
+  fill(){
+    RES_ORDER.forEach(k=>{ if((G.res[k]||0) < this.cap) G.res[k] = this.cap; });
+  },
+  badge(){
+    const el = document.getElementById("cheatBadge");
+    if(el) el.className = "cheat-badge"+(this.on?" on":"");
+  },
+  enable(){
+    if(!this.on) G.eraBeforeCheat = realEra(); // 记录作弊前的真实纪元，关闭时回退
+    this.on = true;
+    localStorage.setItem(this.key,"1");
+    this.fill(); this.badge();
+    addLog("作弊模式已开启（测试用）","warn");
+    showToast("作弊模式：无限资源 / 即时研究 / 无限战力","success");
+    checkEra(); // 作弊模式跳过纪元门槛，立即解锁全部纪元
+    renderAll();
+  },
+  disable(){
+    this.on = false;
+    localStorage.removeItem(this.key);
+    const back = typeof G.eraBeforeCheat==="number" ? G.eraBeforeCheat : realEra();
+    if(G.era>back){ G.era = back; addLog("作弊关闭：纪元按真实进度回到"+ERAS[G.era-1].n); }
+    delete G.eraBeforeCheat;
+    this.badge();
+    addLog("作弊模式已关闭");
+    showToast("作弊模式已关闭");
+    renderAll();
+  },
+  toggle(){ this.on ? this.disable() : this.enable(); },
+  listen(){
+    window.addEventListener("keydown", e=>{
+      if(e.ctrlKey||e.altKey||e.metaKey) return;
+      const tag = ((e.target && e.target.tagName)||"").toLowerCase();
+      if(tag==="input"||tag==="textarea") return;
+      if(e.key && e.key.length===1 && /[a-z]/i.test(e.key)){
+        this.buf = (this.buf + e.key.toLowerCase()).slice(-this.seq.length);
+        if(this.buf === this.seq){ this.buf = ""; this.toggle(); }
+      } else {
+        this.buf = "";
+      }
+    });
+  }
+};
+function cheatOn(){ return CHEAT.on; }
+function adjustLeftPad() {
+  const el = document.querySelector(".left");
+  if(el) el.style.paddingBottom = document.getElementById("scrollPanel").classList.contains("expanded") ? "310px":"90px";
+}
+function updateScrollBar() {
+  document.getElementById("scrollBadge").textContent = G.unread;
+  const bar = document.querySelector(".scroll-bar");
+  bar.classList.add("flash");
+  setTimeout(()=>bar.classList.remove("flash"),600);
+}
+function toggleScroll() {
+  const panel = document.getElementById("scrollPanel");
+  panel.classList.toggle("expanded");
+  if(panel.classList.contains("expanded")) G.unread = 0;
+  document.getElementById("scrollBadge").textContent = G.unread;
+  renderScrollList();
+  adjustLeftPad();
+}
+function renderScrollList() {
+  const el = document.getElementById("scrollList");
+  // 只显示故事类条目（兼容旧存档里残留的战报/建造等）
+  const pages = G.scrollPages.filter(p=>p.tag==="story"||p.tag==="lore");
+  if(pages.length===0){ el.innerHTML='<div class="scroll-empty">故事会随着复兴的推进逐渐浮现...</div>'; return; }
+  el.innerHTML = pages.map(p =>
+    '<div class="scroll-item'+(p.tag==="story"?"story-item":"")+'"><div class="scroll-item-header">'+
+    '<span class="scroll-item-tag tag-'+p.tag+'">'+({build:' 建造',combat:' 战报',lore:' 记事',glory:' 启示',discover:' 发现',story:' 故事'})[p.tag]+'</span>'+
+    '<span class="scroll-item-time">'+p.time+'</span></div>'+
+    '<div class="scroll-item-title">'+(p.title||p.t||'')+'</div>'+
+    '<div class="scroll-item-text">'+(p.text||p.x||'')+'</div></div>'
+  ).join('');
+}
+function loreDone(key){ if(G.loreShown[key]) return; G.loreShown[key]=true; const l=LORE8.find(x=>x.key===key); if(l){ addScrollPage("lore",l.t,l.x); } }
+function showLore(b){
+  if(!b.lore) return;
+  if(G.firstBuilt[b.id]) return;
+  G.firstBuilt[b.id]=true;
+  addScrollPage(b.lore.tag,b.lore.t,b.lore.x);
+}
+function showModal(title,html,btns) {
+  const box = document.getElementById("modalBox");
+  box.innerHTML = "<h3>"+title+"</h3>"+html+"<div class='mbtns' id='mbtns'></div>";
+  const mb = document.getElementById("mbtns");
+  (btns||[{t:"关闭",fn:closeModal}]).forEach(b=>{
+    const el=document.createElement("button");
+    el.textContent=b.t; if(b.cls) el.className=b.cls;
+    el.onclick=b.fn; mb.appendChild(el);
+  });
+  document.getElementById("modalBg").classList.add("show");
+}
+function closeModal(){ document.getElementById("modalBg").classList.remove("show"); }
+function showHelp(){
+  showModal("玩法说明（V8）","<div class='mtext'>"+
+  "【目标】收复六处故土 → 建成信标 → 荣光 ≥ 阈值 → 建门廊枢纽 → 推门换门。\n"+
+  "【建造】无槽位限制，点击即完成。约束 = 资源指数上浮 + 科技纪元 + 故土收复。\n"+
+  "【升级】建筑不再单独升级。研究对应的工艺科技后，该建筑自动升级，之后新建的同类型建筑也继承该等级。\n"+
+  "【纪元】农耕→铁工→电气→融合→核能，每纪元解锁新建筑/新兵种。\n"+
+  "【士兵】两套：①数字编制——按数量成批招募，无名字无等级，战死会减员，进荣誉墙（每5人信念+1/s 永久）；②英雄——上限10位，有名字/等级/经验/血量，造价×3，永不战死（重伤只疗养），自带8装备槽。\n"+
+  "【装备】武器/头盔/护甲/战靴/护手/披风/护符/指环 8 槽，白绿蓝紫金 5 品级（战力×1/1.6/2.5/4/6.5）。英雄巡逻与出征自动打怪，掉落品级越好越靠深处，自动换上更优装备。\n"+
+  "【科研】在研究页开展研究，耗时分钟~小时级；融合链素材靠战斗缴获。\n"+
+  "【存档】每5秒自动存档，离线最长12小时按效率补算。</div>");
+}
+
+// ---------- 数值计算 ----------
+function hasRes(id){ return G.R[id] && G.R[id].done; }
+function eraUnlockedBuilding(b){
+  if(b.era > G.era) return false;
+  if(b.req && b.req.res && !hasRes(b.req.res)) return false;
+  if(b.req && b.req.land!==undefined && !G.lands[b.req.land].liberated) return false;
+  return true;
+}
+function getCost(b) {
+  const st = G.B[b.id];
+  const scale = b.kind==="core"? 1.7 :b.kind==="func"? 1.5 :1.35;
+  const cost = {};
+  Object.entries(b.cost).forEach(([k,v])=>{ cost[k] = Math.floor(v * Math.pow(scale,st.count)); });
+  if(b.id==="sentry"&& hasRes("sentryry")) Object.keys(cost).forEach(k=>cost[k]=Math.floor(cost[k]*0.8));
+  return cost;
+}
+function canAfford(cost){ return cheatOn() || Object.entries(cost).every(([k,v])=>(G.res[k]||0)>=v*S); }
+function payCost(cost){ if(cheatOn()) return; Object.entries(cost).forEach(([k,v])=>{ G.res[k]-=v*S; }); }
+
+// 英雄战力 = 基础 ×等级 ×血量 + 8 件装备加成
+function soldierPower(s) {
+  if(cheatOn()) return 1e9;
+  const u = UNITS[s.type];
+  let p = u.power * (1 + 0.15*(s.lv-1));
+  if(s.hp < 100) p *= (0.4 + 0.6*s.hp/100);
+  if(u.powerUse && !(G.res.power > u.powerUse*3*S)) p *= 0.5; // 缺电减半
+  p += heroGearPower(s);
+  return p;
+}
+function heroGearPower(s){
+  if(!s.equip) return 0;
+  return s.equip.reduce((a,e)=>a+(e?e.power:0),0);
+}
+// 普通士兵：纯数字计数，无等级/装备，战力=数量×兵种基础
+function troopCount(){ return Object.values(G.troops||{}).reduce((a,b)=>a+b,0); }
+function troopArmyPower(){
+  if(cheatOn()) return 1e9;
+  let p=0;
+  Object.entries(G.troops||{}).forEach(([t,n])=>{ const u=UNITS[t]; if(u) p+=u.power*n; });
+  return p;
+}
+// 普通士兵战死：按比率从各兵种扣减，记荣誉墙
+function killTroops(where, ratio){
+  const ts = Object.keys(G.troops||{}).filter(t=>G.troops[t]>0);
+  if(!ts.length) return 0;
+  const total = troopCount();
+  const dead = Math.min(total, Math.max(1, Math.round(total*ratio)));
+  let left = dead;
+  while(left>0){
+    const alive = ts.filter(t=>G.troops[t]>0);
+    if(!alive.length) break;
+    const t = alive[Math.floor(Math.random()*alive.length)];
+    G.troops[t]--; left--;
+  }
+  G.honorWall.push({name:dead+"名士兵",type:"阵亡",lv:0,kills:0,count:dead,where:where+"（战死）"});
+  addLog(where+"：普通士兵战死 "+dead+" 人","warn");
+  return dead;
+}
+function armyAura() {
+  let aura = 0;
+  aura += 0.03 * (G.B.sentry?G.B.sentry.count:0);
+  aura += 0.03 * (G.B.spearwk?G.B.spearwk.count:0);
+  ["guardian","hengwei","voidguard","fission"].forEach(t=>{
+    const u = UNITS[t];
+    const n = G.soldiers.filter(s=>s.type===t && s.state!=="healing").length + (G.troops[t]||0);
+    aura += u.aura * n;
+  });
+  return 1 + aura;
+}
+function patrolBonus() {
+  let b = 1;
+  b += 0.08 * (G.B.watchtw?G.B.watchtw.count:0);
+  b += 0.15 * (G.B.radio?G.B.radio.count:0);
+  if(G.B.sentry && G.B.sentry.lv>=3) b += 0.10;
+  const hn = G.soldiers.filter(s=>s.type==="hound"&&s.state==="patrol").length + (G.troops.hound||0);
+  b += (UNITS.hound?UNITS.hound.patrolAura:0)*hn;
+  return b;
+}
+function xpNeed(lv){ return Math.floor(50 * Math.pow(1.8,lv-1)); }
+function gainXp(s,amt) {
+  s.xp += amt;
+  while(s.xp >= xpNeed(s.lv)) {
+    s.xp -= xpNeed(s.lv); s.lv++;
+    addLog(""+s.name+"升到 Lv"+s.lv+(s.lv>=5?"（老练）":""),"good");
+    addScrollPage("combat",""+s.name+"升级","士兵 "+s.name+"在战斗中成长，现在 Lv"+s.lv+"。"+(s.lv>=5?"他已是队里最可靠的老兵之一。":""));
+  }
+}
+
+// ---------- 全局产率 ----------
+function computeRates(forOffline) {
+  const rate = {};
+  RES_ORDER.forEach(k=>rate[k]=0);
+  const B = G.B;
+  const lvMul = id => Math.pow(1.6,(B[id]?B[id].lv:1)-1);
+  const liberated = G.lands.filter(l=>l.liberated);
+  // 自然采集兜底：永不完全断供
+  rate.food += 1; rate.build += 1; rate.belief += 1;
+
+  // 信念
+  let belief = 3*(B.altar?B.altar.count:0) + 6*liberated.length + (G.matrixOn?6:0);
+  let built = BUILDINGS.filter(b=>b.id!=="altar"&& b.id!=="gmatrix").reduce((s,b)=>s+(B[b.id]?B[b.id].count:0),0);
+  belief += 1*built;
+  belief += 1 * Math.floor(G.honorWall.reduce((a,h)=>a+(h.count||1),0)/5); // 荣誉墙抚恤（按战死人数）
+  belief *= 1 + 0.5*(B.resotw?B.resotw.count:0);
+  if(hasRes("firework")) belief *= 1.1;
+  rate.belief += belief;
+
+  // 直接产出
+  BUILDINGS.forEach(b=>{
+    if(b.prod && B[b.id].count>0){
+      Object.entries(b.prod).forEach(([k,v])=>{
+        let val = v * B[b.id].count * lvMul(b.id);
+        if(b.id==="field"){
+          if(hasRes("agri")) val *= 1.15;
+          if(B.field.lv>=3) val *= 1.25;
+          if(B.field.lv>=5 && hasRes("firectrl")) val *= 3;
+        }
+        if(b.id==="quarry"){
+          if(B.quarry.lv>=3) val *= 1.25;
+          if(B.quarry.lv>=5 && G.era>=3) val *= 2;
+        }
+        rate[k] += val;
+      });
+    }
+  });
+  // 土地特产
+  G.lands.forEach((l,i)=>{
+    if(l.liberated && LANDS[i].landRate){
+      Object.entries(LANDS[i].landRate).forEach(([k,v])=>{ rate[k]+=v; });
+    }
+    // 垦荒者驻扎粮产加成（荒村田垄/苗圃）
+    if(l.liberated && l.patrol.length>0 && (i===0||i===1)){
+      const pn = l.patrol.filter(id=>{ const s=G.soldiers.find(x=>x.id===id); return s&&s.type==="pioneer"; }).length;
+      const tp = Math.floor((G.troops.pioneer||0)/Math.max(1,G.lands.filter(x=>x.liberated).length));
+      if(pn+tp>0) rate.food += 1*(pn+tp);
+    }
+  });
+
+  // 转化建筑（两遍法：先算需求，再按库存约束）
+  const consumers = [];
+  BUILDINGS.forEach(b=>{
+    if(b.conv && B[b.id].count>0){
+      if(b.req && b.req.res && !hasRes(b.req.res)) return;
+      if((b.conv.in.power) && !G.gridOn) return; // 耗电建筑需电网
+      const n = B[b.id].count,lv = lvMul(b.id);
+      let mul = 1;
+      if(b.id==="furnace"){ if(hasRes("forging")) mul*=1.25; if(B.furnace.lv>=3) mul*=1.3; }
+      if(b.id==="nitersh"&& hasRes("polymer")) mul*=1.5;
+      if(b.id==="arcsm"&& B.furnace && B.furnace.lv>=5) mul*=2;
+      if(b.id==="arcsm"&& B.arcsm.lv>=5) mul*=2;
+      if(b.id==="magnetp"&& G.lands[4] && G.lands[4].liberated) mul*=2;
+      if(b.id==="reactor"&& B.fuelfab && B.fuelfab.count>0) mul*=2;
+      // 产业链：上游建筑供货，每座 +bonus（上限 2 座）
+      const cs = chainState(b.id);
+      if(cs && cs.bonus>0) mul *= 1+cs.bonus;
+      consumers.push({ id:b.id,in:Object.entries(b.conv.in).map(([k,v])=>[k,v*n*lv*mul]),out:Object.entries(b.conv.out).map(([k,v])=>[k,v*n*lv*mul]) });
+    }
+  });
+  // 灯塔运转耗电（也当作消费者，但产出是全局加成）
+  const lh = B.lighth?B.lighth.count:0;
+  if(lh>0 && G.gridOn) consumers.push({ id:"lighth",in:[["power",2*lh]],out:[] });
+
+  // 兵种电力维护
+  G.soldiers.forEach(s=>{
+    const u=UNITS[s.type];
+    if(u.powerUse && s.state!=="healing") consumers.push({ id:"unit"+s.id,in:[["power",u.powerUse]],out:[] });
+  });
+  Object.entries(G.troops||{}).forEach(([t,n])=>{
+    const u=UNITS[t];
+    if(u.powerUse && n>0) consumers.push({ id:"troop"+t,in:[["power",u.powerUse*n]],out:[] });
+  });
+
+  // 第一遍：需求总量
+  const demand = {};
+  consumers.forEach(c=>c.in.forEach(([k,v])=>{ demand[k]=(demand[k]||0)+v; }));
+  // 约束比例
+  const effMap = {};
+  RES_ORDER.forEach(k=>{
+    const d = demand[k]||0;
+    if(d<=0){ effMap[k]=1; return; }
+    const stock = (G.res[k]||0)/S;
+    if(k==="power"){
+      // 电力不足时按比例供给
+      effMap[k] = Math.min(1,stock>0 ? 1 :0); // 有库存就供，没库存全停
+    } else {
+      effMap[k] = Math.min(1,stock/d);
+    }
+  });
+  // 第二遍：实际消耗/产出
+  const used = {};
+  consumers.forEach(c=>{
+    let eff = 1;
+    c.in.forEach(([k,v])=>{ eff = Math.min(eff,effMap[k]); });
+    if(eff<=0) return;
+    c.in.forEach(([k,v])=>{ used[k]=(used[k]||0)+v*eff; });
+    c.out.forEach(([k,v])=>{ rate[k]+=v*eff; });
+  });
+  Object.entries(used).forEach(([k,v])=>{ rate[k]-=v; });
+
+  // 全局乘区
+  let globalMul = 1;
+  if(hasRes("lighteng")) globalMul *= 1.1;
+  if(lh>0 && G.gridOn && (G.res.power>0||forOffline)) globalMul *= 1+0.15*lh;
+  ["food","build","steel","alloy","chem","concrete","plastic","optics","chip","carbon","magnet","glassF","polyF","superF","nuclear","seed","iron","crystal","ammo"].forEach(k=>{ rate[k]*=globalMul; });
+  // 信标：粮食产量 +15%
+  if((G.B.beacon?G.B.beacon.count:0)>0) rate.food *= 1.15;
+  // 统一放大到整数体系：每秒增减均为整数
+  RES_ORDER.forEach(k=>{ rate[k] = Math.round(rate[k]*S); });
+  return rate;
+}
+
+function gloryThreshold(){ return Math.floor(25000*S * (hasRes("gatem")?0.8:1)); }
+
+// ---------- 建造 / 升级 ----------
+function buildB(bid) {
+  const b = BUILDINGS.find(x=>x.id===bid);
+  const st = G.B[bid];
+  if(!b || !eraUnlockedBuilding(b)) return;
+  if(b.kind==="core"&& st.count>0){ showToast("核心建筑唯一","error"); return; }
+  const cost = getCost(b);
+  if(!canAfford(cost)){ showToast("资源不足","error"); return; }
+  payCost(cost);
+  st.count++;
+  G.glory += (b.glory||0)*S;
+  addLog("建成："+b.n+(st.count>1?"×"+st.count:""),"good");
+  showToast(""+b.n+"建成","success");
+  if(st.count===1){
+    showLore(b);
+    if(b.onBuilt==="gridOn"){ G.gridOn = true; addLog("电网贯通：耗电建筑解锁","good"); }
+    if(b.onBuilt==="matrixOn"){ G.matrixOn = true; addLog("荣光矩阵上线：荣光获取 ×1.5","good"); }
+    if(b.onBuilt==="beaconOn"){
+      G.gloryIdle = true; loreDone("beacon");
+      addLog("信标点亮：+6 荣光/s· 粮食 +15%","good");
+      showToast("灰壤之芽点亮！","success");
+    }
+    if(b.unlockU) b.unlockU.forEach(u=>{ if(!G.unitUnlocked[u]){ G.unitUnlocked[u]=true; showToast("解锁兵种："+UNITS[u].n,"success"); } });
+  }
+  syncUnitUnlocks();
+  checkEra();
+  renderAll();
+  flashEl(document.querySelector('.build-card[data-bid="'+bid+'"]'));
+}
+// 兵种解锁总同步（建筑 + 研究双条件）
+function syncUnitUnlocks(){
+  const B = G.B;
+  const tryUnlock = (uid,cond) => {
+    if(cond && !G.unitUnlocked[uid]){ G.unitUnlocked[uid]=true; showToast("解锁兵种："+UNITS[uid].n,"success"); addLog("解锁兵种："+UNITS[uid].n,"good"); }
+  };
+  tryUnlock("shield",(B.sentry?B.sentry.count:0)>0);
+  tryUnlock("spear",(B.spearwk?B.spearwk.count:0)>0);
+  tryUnlock("pioneer",G.lands[0].liberated);
+  tryUnlock("guardian",G.lands[4].liberated);
+  tryUnlock("rifle",(B.foundry?B.foundry.count:0)>0);
+  tryUnlock("armor",(B.warmill?B.warmill.count:0)>0);
+  tryUnlock("hengwei",(B.warmill?B.warmill.count:0)>0 && hasRes("fade"));
+  tryUnlock("mortar",(B.warmill?B.warmill.count:0)>0 && hasRes("reson"));
+  tryUnlock("hound",(B.sentry?B.sentry.count:0)>0 && (B.watchtw?B.watchtw.count:0)>0);
+  tryUnlock("sapper",(B.nitersh?B.nitersh.count:0)>0);
+  tryUnlock("medic",(B.chemp?B.chemp.count:0)>0);
+  tryUnlock("gunship",(B.semic?B.semic.count:0)>0 && hasRes("firectrl"));
+  tryUnlock("voidguard",(B.biofuse?B.biofuse.count:0)>0 && hasRes("sync"));
+  tryUnlock("fission",(B.reactor?B.reactor.count:0)>0 && hasRes("fission"));
+}
+// ---------- 纪元推进 ----------
+// 纯按真实门槛推算纪元（完全忽略作弊），用于关闭作弊后把纪元拉回真实进度
+function realEra() {
+  let e = 1;
+  const B = G.B;
+  if((B.academy?B.academy.count:0)>0) e = 2;
+  if(e>=2 && (B.furnace?B.furnace.count:0)>=3 && G.res.steel>=200*S) e = 3;
+  if(e>=3 && G.lands[4] && G.lands[4].liberated && (B.facademy?B.facademy.count:0)>0) e = 4;
+  if(e>=4){
+    const f=(B.lighth?B.lighth.count:0)+(B.stasis?B.stasis.count:0)+(B.resotw?B.resotw.count:0);
+    if(f>=2 && G.res.crystal>=500*S) e = 5;
+  }
+  return e;
+}
+function checkEra() {
+  const pass = i => {
+    if(i===2) return (G.B.furnace?G.B.furnace.count:0)>=3 && G.res.steel>=200*S;
+    if(i===3) return G.lands[4].liberated && (G.B.facademy?G.B.facademy.count:0)>0;
+    if(i===4) {
+      const f = (G.B.lighth?G.B.lighth.count:0)+(G.B.stasis?G.B.stasis.count:0)+(G.B.resotw?G.B.resotw.count:0);
+      return f>=2 && G.res.crystal>=500*S;
+    }
+    return false;
+  };
+  while(G.era<5 && (cheatOn() || (G.era<2 ? (G.B.academy?G.B.academy.count:0)>0 :pass(G.era)))){
+    G.era++;
+    addLog("进入"+ERAS[G.era-1].n+"！","good");
+    addScrollPage("glory",""+ERAS[G.era-1].n,ERAS[G.era-1].gateDesc+"\n\n新的建筑、新的资源、新的兵种解锁了。文明在这一步一步往回长。");
+    showToast("进入"+ERAS[G.era-1].n,"success");
+  }
+}
+
+// ---------- 研究 ----------
+function researchSlots(){ return (G.B.academy && G.B.academy.lv>=3)?2:1; }
+function startResearch(id) {
+  const r = RESEARCH.find(x=>x.id===id);
+  if(!r || G.R[id].done) return;
+  if(r.era>G.era){ showToast("需要"+ERAS[r.era-1].n,"error"); return; }
+  if(r.up){
+    const b = BUILDINGS.find(x=>x.id===r.up.b);
+    if(!G.B[r.up.b] || G.B[r.up.b].count===0){ showToast("需先建成"+(b?b.n:"对应建筑"),"error"); return; }
+  }
+  if(G.queue.length>=researchSlots()){ showToast("研究进行中","error"); return; }
+  if(r.pre.includes("anyFusion")){ if(!["fade","sync","reson"].some(x=>hasRes(x))){ showToast("前置：任一融合链研究","error"); return; } }
+  else for(const p of r.pre){ if(!hasRes(p)){ showToast("前置："+RESEARCH.find(x=>x.id===p).n,"error"); return; } }
+  if(!canAfford(r.cost)){ showToast("研究资源不足","error"); return; }
+  if(G.queue.includes(id)) return;
+  payCost(r.cost);
+  G.queue.push(id);
+  addLog("开始研究："+r.n);
+  if(cheatOn()) tickResearch(); // 作弊模式：立即完成
+  renderAllPanels();
+}
+function tickResearch() {
+  if(G.queue.length===0) return;
+  const finished = [];
+  G.queue.forEach(id=>{
+    const r = RESEARCH.find(x=>x.id===id);
+    G.R[id].prog += cheatOn() ? r.t : 1;
+    if(G.R[id].prog >= r.t) finished.push(id);
+  });
+  finished.forEach(id=>{
+    const r = RESEARCH.find(x=>x.id===id);
+    G.R[id].done = true; G.R[id].prog = 0;
+    G.queue = G.queue.filter(x=>x!==id);
+    addLog("研究完成："+r.n,"good");
+    showToast("研究完成："+r.n,"success");
+    addScrollPage("discover","研究完成："+r.n,r.d);
+    if(r.up){
+      const b = BUILDINGS.find(x=>x.id===r.up.b), s = G.B[r.up.b];
+      if(s && s.count>0){
+        s.lv = Math.max(s.lv,r.up.lv);
+        addLog(""+(b?b.n:r.up.b)+"因研究升至 Lv"+s.lv,"good");
+        showToast((b?b.n:"建筑")+"升至 Lv"+s.lv,"success");
+      }
+    }
+    syncUnitUnlocks();
+  });
+  if(finished.length>0) checkEra();
+}
+
+// ---------- 士兵 ----------
+const SURN = ["陈","周","林","赵","何","苏","韩","白","秦","陆","江","沈","顾","唐","孟","吴","杨","徐","高","罗"];
+const GIVEN = ["铎","九","禾","晚","石","叶","铮","榆","岚","沉","离","砚","秋","松","岩","川","野","铁山","长风","望北","念安","知远"];
+function genName(){
+  return SURN[Math.floor(Math.random()*SURN.length)] + GIVEN[Math.floor(Math.random()*GIVEN.length)];
+}
+// 普通士兵：按数量直接招募（数字计数，有战死）
+function recruitTroop(type, n){
+  n = n||1;
+  const u = UNITS[type];
+  if(!u) return;
+  if(!G.unitUnlocked[type]){ showToast("兵种未解锁","error"); return; }
+  const cost = {};
+  Object.entries(u.cost).forEach(([k,v])=>{ cost[k]=v*n; });
+  if(!canAfford(cost)){ showToast("招募资源不足","error"); return; }
+  payCost(cost);
+  G.troops[type] = (G.troops[type]||0) + n;
+  addLog("招募 "+u.n+" ×"+n,"good");
+  renderAllPanels();
+  flashEl(document.querySelector('[data-recruit-troop="'+type+'"]'));
+}
+// 英雄：个体，上限10，永不战死，带全套白装
+function recruitUnit(type) {
+  const u = UNITS[type];
+  if(!u) return;
+  if(!G.unitUnlocked[type]){ showToast("兵种未解锁","error"); return; }
+  if(G.soldiers.length >= HERO_MAX){ showToast("英雄已满 "+HERO_MAX+" 位","error"); return; }
+  const cost = {};
+  const lv = (G.B.tent&&G.B.tent.lv>=5)?2:1;
+  Object.entries(u.cost).forEach(([k,v])=>{ cost[k]=v*3; }); // 英雄造价 ×3
+  if(!canAfford(cost)){ showToast("招募英雄资源不足","error"); return; }
+  payCost(cost);
+  const s = { id:G.nextSid++,name:genName(),type,lv,xp:0,kills:0,hp:100,state:"idle",land:-1,healRate:0,equip:freshEquip(lv) };
+  G.soldiers.push(s);
+  addLog("英雄 "+s.name+" 入队（"+u.n.replace(/^\S+\s/,"")+"）","good");
+  showToast("英雄 "+s.name+" 入队","success");
+  autoAssignPatrol();
+  renderAllPanels();
+  flashEl(document.querySelector('[data-recruit="'+type+'"]'));
+}
+function soldierTitle(s){
+  if(s.lv>=12) return "传说";
+  if(s.lv>=8) return "传奇";
+  if(s.lv>=5) return "老练";
+  return "";
+}
+// 营地巡逻：新兵无需派驻，留在营地即安全涨经验（不产出资源、不战死）
+function campPatrolTick() {
+  const campers = G.soldiers.filter(s=>s.state==="idle");
+  campers.forEach(s=>gainXp(s, 4+Math.floor(Math.random()*5)));
+}
+// 自动分兵：可战士兵按战力分散到已解放故土；强者优先派往更深处（经验/缴获更高），每块地都有人
+function autoAssignPatrol() {
+  const open = G.lands.reduce((a,l,i)=>{ if(l.liberated) a.push(i); return a; },[]);
+  if(!open.length) return; // 尚无已解放故土：全部留营地巡逻
+  // 收回营地/巡逻中的士兵统一重新分配（出征、疗养不动），便于随战力成长自动往后调
+  const pool = G.soldiers.filter(s=>(s.state==="idle"||s.state==="patrol") && s.hp>=30);
+  pool.forEach(s=>{ s.state="idle"; s.land=-1; });
+  G.lands.forEach(l=>{ l.patrol=[]; });
+  if(!pool.length) return;
+  pool.sort((a,b)=>soldierPower(b)-soldierPower(a)); // 战力高的先分
+  // 从最深往浅轮流发放：强者先落到深处，且每块已解放故土都有巡逻队
+  let k = 0;
+  while(k<pool.length){
+    let placed = false;
+    for(let oi=open.length-1; oi>=0 && k<pool.length; oi--){
+      const i = open[oi], s = pool[k++];
+      s.state="patrol"; s.land=i; G.lands[i].patrol.push(s.id);
+      placed = true;
+    }
+    if(!placed) break;
+  }
+}
+function healTick() {
+  const medN = G.soldiers.filter(s=>s.type==="medic"&&s.state!=="healing").length;
+  const medMul = 1 + (UNITS.medic?UNITS.medic.healAura:0)*medN;
+  G.soldiers.forEach(s=>{
+    if(s.state!=="healing") return;
+    if(G.res.food < 1){ return; }
+    G.res.food -= 1;
+    let rate = s.healRate;
+    if(G.B.stasis && G.B.stasis.count>0) rate *= Math.pow(1.5,G.B.stasis.count);
+    if(G.B.barracks && G.B.barracks.lv>=5) rate *= 2;
+    rate *= medMul;
+    s.hp += rate;
+    if(s.hp>=100){ s.hp=100; s.state="idle"; s.land=-1; addLog(""+s.name+"伤愈归队","good"); }
+  });
+}
+// 英雄永不战死：濒死强制撤回疗养（保留个体与装备）
+function downHero(s,where){
+  s.hp = 1;
+  enterHeal(s);
+  addLog("英雄 "+s.name+" 在"+where+"重伤，撤回疗养（英雄不死）","warn");
+  addScrollPage("combat",""+s.name+"重伤",UNITS[s.type].n+""+s.name+"在"+where+"身负重伤，被队友拖回了营地。\n\n英雄不会死——只要还有一口气，就能养回来。");
+}
+
+// ---------- 巡逻遇敌 ----------
+function patrolTick() {
+  G.lands.forEach((l,i)=>{
+    if(!l.liberated) return;
+    if(!l._next) l._next = 60 + Math.random()*120;
+    l._next -= 1;
+    if(l._next>0) return;
+    l._next = 60 + Math.random()*120;
+    const squad = l.patrol.map(id=>G.soldiers.find(s=>s.id===id)).filter(Boolean);
+    const openN = Math.max(1,G.lands.filter(x=>x.liberated).length);
+    const troopShare = troopArmyPower()/openN; // 普通士兵按已解放地块均摊
+    if(squad.length===0 && troopShare<=0) return;
+    const ePower = LANDS[i].power * 0.2 * (0.7+Math.random()*0.6) * (1+i*0.15);
+    let pSum = (squad.reduce((s,x)=>s+soldierPower(x),0) + troopShare) * patrolBonus();
+    const lootBase = PATROL_LOOT[i];
+    const where = LANDS[i].name;
+    if(pSum >= ePower) {
+      // 胜利
+      const loot = {};
+      Object.entries(lootBase).forEach(([k,v])=>{ loot[k]=Math.ceil(v*(0.6+Math.random()*0.8)); });
+      if(Math.random()<0.3+i*0.08) loot.relics=(loot.relics||0)+1;
+      if(Math.random()<0.18+i*0.06) loot.tissue=(loot.tissue||0)+1;
+      Object.entries(loot).forEach(([k,v])=>{ G.res[k]=(G.res[k]||0)+v*S; });
+      squad.forEach(s=>{
+        s.kills += 1+Math.floor(Math.random()*3);
+        gainXp(s,6+Math.floor(Math.random()*10));
+        const drop = equipDrop(s.lv, i); // 打怪掉装，自动换上更优
+        if(drop) autoEquip(s, drop);
+        if(Math.random()<0.12 && G.B.sentry && G.B.sentry.lv<5){
+          s.hp -= 10+Math.random()*25;
+          if(s.hp<30){ enterHeal(s); }
+        }
+      });
+      const lead = squad[0] || {name:"守军"};
+      addLog(""+lead.name+"小队在"+where+"击溃灰体，缴获 "+Object.entries(loot).map(([k,v])=>RES[k].n+"×"+v).join("·"),"good");
+      // 战报流（低频写残页，避免刷屏）
+      if(Math.random()<0.25) addScrollPage("combat","巡逻战报",""+timeStr()+""+lead.name+"小队在"+where+"击溃灰体游荡群。\n缴获："+Object.entries(loot).map(([k,v])=>RES[k].n+"×"+v).join("·"));
+    } else {
+      // 苦战
+      addLog(""+where+"巡逻队陷入苦战（敌 "+Math.round(ePower)+"/ 我 "+Math.round(pSum)+"）","warn");
+      squad.forEach(s=>{
+        const dmg = 20 + Math.random()*40 * (ePower/Math.max(1,pSum));
+        s.hp -= dmg;
+        if(s.hp<=0){ downHero(s,where+"巡逻中"); }
+        else if(s.hp<30){ enterHeal(s); }
+      });
+      if(troopShare>0 && ePower>pSum) killTroops(where+"巡逻中", 0.03+0.05*(ePower/Math.max(1,pSum)));
+    }
+  });
+}
+function enterHeal(s){
+  if(s.state==="healing") return;
+  s.state="healing"; s.land=-1;
+  G.lands.forEach(l=>{ l.patrol=l.patrol.filter(id=>id!==s.id); });
+  s.healRate = 100/(30 + (100-s.hp)*1.8);
+  addLog(""+s.name+"重伤撤回疗养","warn");
+}
+
+// ---------- 出征 ----------
+function attackLand(lid) {
+  const l = G.lands[lid];
+  const L = LANDS[lid];
+  if(!l || l.liberated) return;
+  if(l.locked){ showToast("此处尚未开放","error"); return; }
+  if(G.expedition){ showToast("远征队尚在外","error"); return; }
+  if(!canAfford(L.cost)){ showToast("出征资源不足","error"); return; }
+  const ready = G.soldiers.filter(s=>s.state==="idle"||s.state==="patrol");
+  if(ready.length===0 && troopCount()===0){ showToast("没有可战士兵，先招募","error"); return; }
+  payCost(L.cost);
+  ready.forEach(s=>{ const l=G.lands[s.land]; if(l) l.patrol=l.patrol.filter(id=>id!==s.id); });
+  // 弹药检查：没弹药枪就是烧火棍（火器威力减半）
+  const ammoNeed = ready.reduce((s,x)=>s+(UNITS[x.type].ammoUse||0),0);
+  const ammoOk = (G.res.ammo||0) >= ammoNeed;
+  if(ammoNeed>0) G.res.ammo = Math.max(0,(G.res.ammo||0)-ammoNeed);
+  ready.forEach(s=>{ s.state="expedition"; s.land=-1; });
+  G.expedition = { land:lid,ids:ready.map(s=>s.id),t:3,ammoOk };
+  const forceN = ready.length + troopCount();
+  addLog("出征："+L.name+"（英雄"+ready.length+" · 士兵"+troopCount()+"）");
+  showToast("出征中："+L.name,"success");
+  addScrollPage("combat","出征："+L.name,L.set+"\n\n"+L.lore+"\n远征队向"+L.name+"进发。兵力："+forceN+"（英雄"+ready.length+"/士兵"+troopCount()+"） / 敌方战力："+L.power+(ammoOk?"":"\n 弹药不足，火器威力减半！"));
+  if(cheatOn()) resolveExpedition(); // 作弊模式：跳过行军等待
+  renderAllPanels();
+}
+function resolveExpedition() {
+  const e = G.expedition; G.expedition=null;
+  const lid = e.land,L = LANDS[lid],l = G.lands[lid];
+  const squad = e.ids.map(id=>G.soldiers.find(s=>s.id===id)).filter(Boolean);
+  // 垦荒者农战特攻 +50%/人；弹药不足火器减半
+  const sapN = squad.filter(x=>x.type==="sapper").length;
+  const sapMul = 1 + (UNITS.sapper?UNITS.sapper.assaultAura:0)*sapN;
+  let pSum = squad.reduce((s,x)=>{
+    let p = soldierPower(x);
+    if(x.type==="pioneer") p *= 1.5;
+    if(!e.ammoOk && UNITS[x.type].ammoUse) p *= 0.5;
+    return s+p;
+  },0) * armyAura() * sapMul + troopArmyPower();
+  const win = pSum >= L.power;
+  const where = L.name;
+  squad.forEach(s=>{ s.state="idle"; });
+  if(win) {
+    l.liberated = true; l.locked = false; l._next = 60;
+    Object.entries(L.reward).forEach(([k,v])=>{ G.res[k]=(G.res[k]||0)+v*S; });
+    const g = 100 + lid*50;
+    G.glory += g*S;
+    addLog(""+where+"收复！荣光+"+g,"good");
+    showToast(""+where+"收复！","success");
+    loreDone("land"+lid);
+    if(LANDS[lid+1]) G.lands[lid+1].locked = false;
+    squad.forEach(s=>{ s.kills+=2; gainXp(s,40+Math.floor(Math.random()*40)); const drop=equipDrop(s.lv,lid); if(drop) autoEquip(s,drop); if(Math.random()<0.25 && G.B.sentry && G.B.sentry.lv<5){ s.hp-=15+Math.random()*25; if(s.hp<30) enterHeal(s); } });
+    if(lid===0 && !G.unitUnlocked["pioneer"]){ G.unitUnlocked["pioneer"]=true; showToast("解锁兵种：垦荒者","success"); }
+    if(lid===4 && !G.unitUnlocked["guardian"]){ G.unitUnlocked["guardian"]=true; showToast("解锁兵种：炉火卫士","success"); }
+    checkEra();
+  } else {
+    addLog(""+where+"出征失败（我 "+Math.round(pSum)+"/ 敌 "+L.power+"）","warn");
+    showToast("出征失败，队伍撤回","error");
+    addScrollPage("combat",""+where+"出征失败","灰体数量超出预期。队伍撤回营地。");
+    squad.forEach(s=>{
+      s.hp -= 40 + Math.random()*50;
+      if(s.hp<=0){ downHero(s,where+"远征中"); }
+      else if(s.hp<30) enterHeal(s);
+    });
+    if(troopCount()>0) killTroops(where+"远征中", 0.12+0.13*(L.power/Math.max(1,pSum)));
+  }
+  renderAll();
+}
+
+
+// ---------- 信标 / 换门 ----------
+function beaconUnlocked(){ return G.lands[11] ? G.lands[11].liberated : G.lands[5].liberated; }
+function doorConditions() {
+  const six = G.lands.every(l=>l.liberated);
+  const beacon = (G.B.beacon?G.B.beacon.count:0)>0;
+  const gloryOk = G.glory >= gloryThreshold();
+  const hub = (G.B.gatehub?G.B.gatehub.count:0)>0;
+  return { six,beacon,gloryOk,hub,all:six&&beacon&&gloryOk&&hub };
+}
+function tickGlory() {
+  if(G.gloryIdle) G.glory += 6*S*(G.matrixOn?1.5:1);
+}
+
+// ---------- 主循环 ----------
+let renderCounter = 0;
+function tick() {
+  G.time++;
+  const rate = computeRates(false);
+  RES_ORDER.forEach(k=>{
+    if(k==="power"){
+      G.res.power = Math.max(0,(G.res.power||0) + rate.power);
+    } else {
+      G.res[k] = Math.max(0,(G.res[k]||0) + rate[k]);
+    }
+  });
+  if(cheatOn()) CHEAT.fill();
+  G._lastRate = rate;
+  tickResearch();
+  healTick();
+  if(G.time%8===0){ campPatrolTick(); autoAssignPatrol(); }
+  patrolTick();
+  tickGlory();
+  if(G.expedition){
+    G.expedition.t -= 1;
+    if(G.expedition.t<=0) resolveExpedition();
+  }
+  if(G.time===3 && !G.loreShown.start){ loreDone("start"); }
+  checkStory();
+  if(G.time%10===0) syncUnitUnlocks();
+  if(G.time%2===0) renderAll();
+  if(G.time%5===0) saveGame();
+}
+
+// ---------- 渲染 ----------
+function renderWorldTabs() {
+  document.getElementById("worldTabs").innerHTML = WorldTabs.map(w=>{
+    const cls = w.id===0 ? "world-tab active":"world-tab locked";
+    return '<div class="'+cls+'"onclick="switchWorld('+w.id+')">第'+(w.id+1)+'门：'+w.name+'</div>';
+  }).join('');
+}
+function switchWorld(id){
+  if(id!==0){ showToast("完成灰壤门的复兴后开启","error"); return; }
+}
+function fmtNum(v){
+  v = Math.floor(v||0);
+  const a = Math.abs(v);
+  if(a>=1e9) return (v/1e9).toFixed(1).replace(/\.0$/,"")+"B";
+  if(a>=1e6) return (v/1e6).toFixed(1).replace(/\.0$/,"")+"M";
+  if(a>=1e4) return (v/1e3).toFixed(1).replace(/\.0$/,"")+"K";
+  return ""+v;
+}
+function costStr(cost,small){
+  return Object.entries(cost).map(([k,v])=>{ const r=RES[k]; return (r?r.i:k)+fmtNum(v*S); }).join("");
+}
+function fmtRate(v){ if(!v) return "+0/s"; return (v>0?"+":"-")+fmtNum(Math.abs(v))+"/s"; }
+
+function renderResBar() {
+  const rate = G._lastRate || computeRates(false);
+  const shown = RES_ORDER.filter(k=>{
+    if(BASE_RES.includes(k)) return true;
+    return (G.res[k]||0)>0 || Math.abs(rate[k]||0)>0 || ["iron","seed","crystal","steel","power"].includes(k)&&(G.era>=2||G.lands.some((l,i)=>l.liberated&&LANDS[i].landRate&&LANDS[i].landRate[k]));
+  });
+  let html = shown.map(k=>{
+    const r = RES[k],rt = rate[k]||0;
+    const neg = rt<0,zero = rt===0;
+    // 进度条速度反映真实速率：+4/s 约 1s 一圈，+1/s 约 4s 一圈
+    const dur = Math.max(0.5, Math.min(9, 4/Math.max(0.25,Math.abs(rt)))).toFixed(1);
+    return '<div class="resrow'+((G.res[k]||0)===0&&zero?' dim':'')+'">'+
+      '<div class="rline"><span class="ricon">'+r.i+'</span><span class="rname">'+r.n+'</span>'+
+      '<span class="rval">'+fmtNum(G.res[k]||0)+'</span>'+
+      '<span class="rrate'+(neg?' neg':zero?' zero':'')+'">'+fmtRate(rt)+'</span></div>'+
+      (zero?'':'<i class="grow'+(neg?' neg':' run')+'" style="--dur:'+dur+'s"></i>')+'</div>';
+  }).join('');
+  html += '<div class="resrow"><div class="rline"><span class="ricon">兵</span><span class="rname">士兵</span><span class="rval">'+troopCount()+'</span></div></div>';
+  html += '<div class="resrow"><div class="rline"><span class="ricon">英</span><span class="rname">英雄</span><span class="rval">'+G.soldiers.length+'/'+HERO_MAX+'</span></div></div>';
+  document.getElementById("resBar").innerHTML = html;
+  document.getElementById("gloryVal").textContent = fmtNum(G.glory);
+  document.getElementById("gloryRate").textContent = G.gloryIdle ? "+6/s" : ("目标 "+fmtNum(gloryThreshold()));
+  document.getElementById("gloryBar").style.width = Math.min(100,G.glory/gloryThreshold()*100)+"%";
+}
+
+function renderBuild() {
+  const st = id => G.B[id];
+  let html = "";
+  // 按建筑类别分组：核心 / 基础 / 功能 / 融合
+  const KINDS = [
+    {k:"core", n:"核心建筑", c:"#9bb0c2"},
+    {k:"basic",n:"基础建筑", c:"#9db5a5"},
+    {k:"func", n:"功能建筑", c:"#b9ad96"},
+    {k:"fused",n:"融合建筑", c:"#a8adc7"}
+  ];
+  // 逐纪元展示：已建建筑跨纪元永久保留（它们仍在产出）；
+  // 未建的只浮出「该纪元顺序第一张」且前置满足的卡，前置没满足就整条链锁住。
+  for(let e=1; e<=G.era; e++){
+    const era = ERAS[e-1];
+    const bs = BUILDINGS.filter(b=>b.era===e && !b.hidden);
+    const vis = bs.filter(b=>st(b.id).count>0);
+    const next = bs.find(b=>st(b.id).count===0);
+    if(next && eraUnlockedBuilding(next)) vis.push(next);
+    // 历史纪元没有任何可见内容就跳过；当前纪元保留标题以表明所处时代
+    if(!vis.length && e<G.era) continue;
+    // 纪元名称只在顶部徽章显示一次，建造区不重复文字；不同纪元之间用细线分隔
+    if(e>1) html += '<div class="era-sep"></div>';
+    KINDS.forEach(g=>{
+    const gbs = vis.filter(b=>b.kind===g.k);
+    if(!gbs.length) return;
+    html += '<div class="kind-group"><div class="kind-head"><span class="dot"style="background:'+g.c+'"></span>'+g.n+'</div><div class="build-grid">';
+    gbs.forEach(b=>{
+      const s = st(b.id);
+      const unlocked = eraUnlockedBuilding(b);
+      const isCore = b.kind==="core";
+      const built = s.count>0;
+      const cost = getCost(b);
+      // 点击卡片=建造（可重复堆叠）；等级由研究解锁，卡上只显示当前等级。
+      const canBuild = unlocked && !(isCore&&built);
+      const ready = canBuild ? canAfford(cost) : false;
+      const lvtag = built ? '<span class="lvtag">Lv'+s.lv+'</span>' :"";
+      const badge = isCore?'<span class="badge badge-core">核心唯一</span>':b.kind==="fused"?'<span class="badge badge-fused">融合</span>':b.kind==="func"?'<span class="badge badge-func">功能</span>':'<span class="badge badge-basic">基础</span>';
+      // 只展示当前效果，不展示 Lv3/Lv5 未来效果
+      const effect = b.effect;
+      html += '<div class="build-card'+(built?" built":"")+(ready?" ready":canBuild?" wait":"")+(unlocked?"":" locked-card")+(b.kind==="fused"?" fused-card":"")+'" data-bid="'+b.id+'"'+(canBuild?' onclick="buildB(\''+b.id+'\')"':'')+'>'+
+        '<div class="bbody">'+
+        '<div class="brow"><span class="bicon'+(built?' anim-flame':'')+'">'+b.i+'</span><span class="bname">'+b.n+'</span>'+(built&&!isCore?'<span class="count-tag">×'+s.count+'</span>':'')+lvtag+badge+'</div>'+
+        '<div class="beffect">'+effect+'</div>'+
+        (function(){ const cs=chainState(b.id); if(!cs) return ''; return '<div class="chain-line'+(cs.n>0?' fed':'')+'">链· '+(cs.n>0?'✓ ':'○ ')+cs.name+(cs.bonus>0?' +'+Math.round(cs.bonus*100)+'%':' 缺供')+'</div>'; })()+
+        '<div class="brow brow-act"><span class="bcost">'+(built?"":("建:"+costStr(cost)))+'</span><span class="bact">'+(unlocked?'':'<span class="bstatus">……</span>')+'</span></div>'+
+        '</div></div>';
+    });
+    html += '</div></div>';
+  });
+  }
+  html += renderGloryLayer();
+  document.getElementById("buildArea").innerHTML = html;
+}
+function renderGloryLayer() {
+  const bs = G.B.beacon || {count:0,lv:1};
+  const beaconOk = beaconUnlocked();           // 六地收复
+  const doorOk = bs.count>0;                    // 信标点亮
+  // 摸索：六地未收复前，整个「荣光·换门」层完全不出现；收复后先浮出信标，点亮后再浮出推门
+  if(!beaconOk && !doorOk) return "";
+  let cards = "";
+  // 信标卡（六地收复后浮现）
+  if(beaconOk || doorOk){
+    const beacon = BUILDINGS.find(x=>x.id==="beacon");
+    let bBtn = "";
+    if(doorOk) bBtn = '<span class="bstatus"style="color:var(--green)">已点亮 </span>';
+    else {
+      const can = canAfford(beacon.cost);
+      bBtn = '<button class="gbtn"onclick="buildB(\'beacon\')"'+(can?'':'disabled')+'>点亮信标</button>';
+    }
+    cards += '<div class="build-card glory-card'+(doorOk?" built":"")+'"><div class="bbody">'+
+      '<div class="brow"><span class="bicon'+(doorOk?"anim-beacon":"")+'">标</span><span class="bname">灰壤之芽· 信标</span><span class="badge badge-core">核心唯一</span></div>'+
+      '<div class="beffect"style="color:var(--gold)">粮食产量 +15%· 荣光+20000· 信标建成后 +6 荣光/s· 解锁换门资格</div>'+
+      '<div class="brow brow-act"><span class="bcost">'+costStr(beacon.cost)+'</span><span class="bact">'+bBtn+'</span></div></div></div>';
+  }
+  // 推门卡（仅信标点亮后浮现）
+  if(doorOk){
+    const c = doorConditions();
+    cards += '<div class="build-card glory-card"><div class="bbody">'+
+      '<div class="brow"><span class="bicon">门</span><span class="bname">推门· 走向第二扇门</span></div>'+
+      '<div class="cond-list"style="color:var(--text-muted)">门就在那里。它自己知道你什么时候准备好了。</div>'+
+      '<div style="text-align:center"><button class="push-door-btn"id="pushBtn"onclick="pushDoor()"style="display:'+(c.all?"inline-block":"none")+'">推开这扇门 →</button></div>'+
+      '</div></div>';
+  }
+  return '<div class="era-divider glory-div"><span class="era-icon"></span><span class="era-name">荣光· 换门</span><div class="era-line"></div></div><div class="build-grid">'+cards+'</div>';
+}
+function pushDoor() {
+  const c = doorConditions();
+  if(!c.all){ showToast("条件未齐","error"); return; }
+  showModal("推门· 走向回廊深处","<div class='mtext'>六块地的绿连成了片。信标的光柱立在天地之间。荣光值："+Math.floor(G.glory)+"。\n\n"+
+    "荣誉墙上的名字：["+G.honorWall.map(h=>h.name).join("、")+"]"+(G.honorWall.length?"":"（无人阵亡——你把每个人都带回了家）")+"\n\n"+
+    "领队在门前站了很久，回头看了看营地，看了看田。\n\n"+
+    "「为了人类的荣光。」\n\n"+
+    "——灰壤门· 复兴完成——\n（第二扇门「兽骨原」开发中，本版本到此为止；清档可重新开始）</div>",[{t:"留在这里",fn:closeModal},{t:"推门（重置本门，保留荣光/记事/荣誉墙）",cls:"gold",fn:()=>{
+      // 换门重置：保留 荣光累计、记事、荣誉墙；清空 建筑/资源/士兵/土地/研究
+      const keep = { glory:G.glory,scrollPages:G.scrollPages,honorWall:G.honorWall,loreShown:G.loreShown };
+      const f = freshState();
+      Object.assign(G,f);
+      G.glory = keep.glory; G.scrollPages = keep.scrollPages; G.honorWall = keep.honorWall; G.loreShown = keep.loreShown;
+      BUILDINGS.forEach(b=>{ G.B[b.id]={count:0,lv:1}; });
+      RESEARCH.forEach(r=>{ G.R[r.id]={done:false,prog:0}; });
+      WorldTabs[1].unlocked = true; // 下一门标记
+      closeModal();
+      showModal("回廊","<div class='mtext'>门在身后合上了。环廊往前长出一段，尽头是第二扇门——兽骨原。\n\n"+
+        "「它还在等。等一个把春天种回去的人。」\n\n（兽骨原将在后续版本开启。你可以清档重新体验灰壤门，或欣赏已解锁的记事图鉴。）</div>");
+      saveGame(); renderAll();
+    }}]);
+}
+
+// ---------- 分栏渲染 ----------
+function switchMainTab(t) {
+  document.querySelectorAll(".maintab").forEach(x=>x.classList.toggle("active",x.dataset.tab===t));
+  document.querySelectorAll(".mainview").forEach(x=>x.classList.toggle("active",x.id==="view"+t.charAt(0).toUpperCase()+t.slice(1)));
+  renderAllPanels();
+}
+function renderRoster() {
+  const el = document.getElementById("rosterArea");
+  let html = '';
+  // ===== 普通士兵：数字计数、按数量招募、有战死 =====
+  html += '<div class="sect-title">士兵 · 数字编制（'+troopCount()+' 人 · 有战死）</div>';
+  UNIT_ORDER.forEach(uid=>{
+    const u = UNITS[uid];
+    if(!G.unitUnlocked[uid]) return;
+    const cnt = G.troops[uid]||0;
+    const batchBtns = TROOP_BATCH.map(n=>'<button class="btn-small" data-recruit-troop="'+uid+'" onclick="recruitTroop(\''+uid+'\','+n+')">+'+n+'</button>').join('');
+    html += '<div class="unit-card">'+
+      '<h4 style="margin:0 0 2px;font-size:13px">'+u.n+' <span style="color:var(--text-muted);font-weight:normal">战力'+u.power+' · 在役 '+cnt+'</span></h4>'+
+      '<div style="font-size:11px;color:var(--text-muted)">单价：'+costStr(u.cost)+'</div>'+
+      '<div style="display:flex;gap:4px;flex-wrap:wrap">'+batchBtns+'</div>'+
+      '</div>';
+  });
+  if(troopCount()===0) html += '<div class="empty-hint">士兵是数字编制，成批招募、战死会减员。先招募一批守住营地。</div>';
+
+  // ===== 英雄：个体、上限10、8装备、5品级、不死 =====
+  html += '<div class="sect-title">英雄（'+G.soldiers.length+'/'+HERO_MAX+' · 永不战死，重伤疗养）</div>';
+  html += '<div style="font-size:11px;color:var(--text-secondary);margin-bottom:5px">英雄造价 ×3，自带全套白装。巡逻与出征时自动打怪，掉落会换成更优装备。</div>';
+  UNIT_ORDER.forEach(uid=>{
+    const u = UNITS[uid];
+    if(!G.unitUnlocked[uid]) return;
+    const full = G.soldiers.length>=HERO_MAX;
+    const c = {}; Object.entries(u.cost).forEach(([k,v])=>c[k]=v*3);
+    html += '<div class="unit-card" style="display:flex;justify-content:space-between;align-items:center">'+
+      '<div><h4 style="margin:0 0 2px;font-size:13px">英雄·'+u.n+' <span style="color:var(--text-muted);font-weight:normal">战力'+u.power+'</span></h4>'+
+      '<div style="font-size:11px;color:var(--text-muted)">'+costStr(c)+'</div></div>'+
+      '<button class="btn-small"'+(full?' disabled':'')+' data-recruit="'+uid+'" onclick="recruitUnit(\''+uid+'\')">'+(full?'已满':'招募')+'</button>'+
+      '</div>';
+  });
+  const sorted = [...G.soldiers].sort((a,b)=>(b.lv-a.lv)||(soldierPower(b)-soldierPower(a)));
+  if(sorted.length===0) html += '<div class="empty-hint">还没有英雄。英雄不会死，是队伍的核心。</div>';
+  sorted.forEach(s=>{
+    const u = UNITS[s.type];
+    const stateTxt = { idle:"营地巡逻",patrol:"巡逻·"+(s.land>=0?LANDS[s.land].name:""),expedition:"出征中",healing:"疗养中"}[s.state];
+    const hpc = s.hp>60?"":s.hp>30?"mid":"low";
+    const title = soldierTitle(s);
+    const gear = (s.equip||[]).map(e=>e?'<span class="eq '+e.cls+'" title="'+e.name+' 战力+'+e.power+'">'+e.name+'</span>':'<span class="eq qx">空</span>').join('');
+    html += '<div class="soldier-card '+s.state+'"><div class="scard-main">'+
+      '<div class="scard-name">'+s.name+(title?' <span style="color:var(--gold);font-size:11px">['+title+']</span>':'')+' <span style="font-size:11px;color:var(--text-muted)">英雄·'+u.n.replace(/^\S+\s/,"")+'</span></div>'+
+      '<div class="scard-info">Lv'+s.lv+'· 战力'+Math.round(soldierPower(s))+'（装备+'+heroGearPower(s)+'）· 击杀'+s.kills+'· '+stateTxt+'· XP '+Math.floor(s.xp)+'/'+xpNeed(s.lv)+'</div>'+
+      '<div class="hpbar-bg"><div class="hpbar-fill '+hpc+'"style="width:'+Math.max(0,s.hp)+'%"></div></div>'+
+      '<div class="eqgrid">'+gear+'</div>'+
+      '</div></div>';
+  });
+  // ===== 荣誉墙：普通士兵战死记录 =====
+  html += '<div class="honor-title"> 荣誉墙（'+G.honorWall.length+'· 每5人信念+1/s 永久）</div>';
+  if(G.honorWall.length===0) html += '<div class="empty-hint">还没有阵亡记录。</div>';
+  G.honorWall.forEach(h=>{
+    html += '<div class="honor-item"><b>'+h.name+'</b>· '+h.type+(h.lv?' Lv'+h.lv:'')+'· 击杀'+h.kills+'· '+h.where+'</div>';
+  });
+  el.innerHTML = html;
+}
+function renderLandsView() {
+  document.getElementById("landsArea").innerHTML = LANDS.map((L,i)=>{
+    const l = G.lands[i];
+    const costStrL = costStr(L.cost);
+    const rewardStrL = costStr(L.reward);
+    const rateStrL = Object.entries(L.landRate||{}).map(([k,v])=>RES[k].n+fmtRate(v*S)).join("·");
+    const pat = l.patrol.length;
+    let btns = "";
+    if(!l.liberated){
+      const readyN = G.soldiers.filter(s=>s.state==="idle"||s.state==="patrol").length + troopCount();
+      btns = '<button class="btn-small atk"'+(l.locked?' disabled':'')+' onclick="attackLand('+i+')">'+(l.locked?'尚未开放':'全军出征（'+readyN+'人可战）')+'</button>';
+    } else {
+      btns = '<div style="font-size:11px;color:var(--text-secondary);margin-top:3px">巡逻队 '+pat+' 人 · 自动驻守</div>';
+    }
+    return '<div class="land-card '+(l.liberated?'liberated':'')+' '+(l.locked?'locked':'')+'">'+
+      '<h4 style="margin:0 0 2px;font-size:13px">'+(i+1)+". "+L.name+' <span style="font-size:11px;color:var(--text-muted)">['+L.zone+']</span> '+(l.liberated?'<span style="color:var(--green);font-size:11px">已收复</span>':l.locked?'<span style="color:var(--text-muted);font-size:11px"></span>':'')+'</h4>'+
+      '<div style="font-size:11px;color:var(--text-secondary)">'+L.set+'</div>'+
+      '<div style="font-size:11px;color:var(--text-muted);margin:2px 0">守军战力 '+L.power+(l.liberated&&rateStrL?' | 特产：'+rateStrL:'')+'</div>'+
+      (l.liberated?'':'<div style="font-size:11px;color:var(--text-muted)">出征消耗：'+costStrL+' ｜ 缴获：'+rewardStrL+'</div>')+btns+'</div>';
+  }).join('');
+}
+function nextResearch() {
+  return RESEARCH.find(r=>{
+    if(hasRes(r.id) || G.queue.includes(r.id)) return false;
+    if(r.era>G.era) return false;
+    if((r.id==="fade"||r.id==="sync"||r.id==="reson") && (G.B.facademy?G.B.facademy.count:0)===0) return false;
+    if(r.up && (!G.B[r.up.b] || G.B[r.up.b].count===0)) return false;
+    if(r.pre.includes("anyFusion")) return ["fade","sync","reson"].some(x=>hasRes(x));
+    return r.pre.every(pp=>hasRes(pp));
+  });
+}
+function upTagFor(r){
+  if(!r.up) return "";
+  const b = BUILDINGS.find(x=>x.id===r.up.b);
+  return '<span class="upgrade-tag">升级 · '+(b?b.n:r.up.b)+' Lv'+r.up.lv+'</span>';
+}
+function renderResearchView() {
+  const el = document.getElementById("researchArea");
+  const doneCount = RESEARCH.filter(r=>hasRes(r.id)).length;
+  let html = '<div class="sect-title">研究档案（已完成 '+doneCount+'/'+RESEARCH.length+'· 当前 '+ERAS[G.era-1].n+'）</div>';
+  // 进行中的研究
+  if(G.queue.length){
+    G.queue.forEach(id=>{
+      const r = RESEARCH.find(x=>x.id===id);
+      const p = Math.min(100,G.R[id].prog/r.t*100);
+      html += '<div class="rq-item researching"><div class="rq-name"> '+r.n+' '+upTagFor(r)+' <span style="float:right;font-size:11px">'+Math.max(0,Math.ceil(r.t-G.R[id].prog))+'s</span></div>'+
+        '<div class="rq-desc">'+r.d+'</div>'+
+        '<div class="rq-bar-bg"><div class="rq-bar-fill"style="width:'+p+'%"></div></div></div>';
+    });
+  }
+  // 摸索模式：只显示当前可研究的一项
+  const avail = nextResearch();
+  if(avail){
+    const afford = canAfford(avail.cost);
+    const can = G.queue.length<researchSlots();
+    html += '<div class="rq-item"><div class="rq-name"> '+avail.n+' '+upTagFor(avail)+'<span style="float:right;font-size:11px;color:var(--text-muted)">'+Math.round(avail.t/60)+'分钟</span></div>'+
+      '<div class="rq-desc">'+avail.d+'</div>'+
+      '<div style="font-size:11px;color:var(--text-muted)">'+costStr(avail.cost)+'</div>'+
+      (can?'<button class="btn-small"onclick="startResearch(\''+avail.id+'\')"'+(afford?'':'disabled')+'>研究</button>':'<span class="bstatus">研究进行中</span>')+
+      '</div>';
+  } else if(!G.queue.length) {
+    html += '<div class="empty-hint">当前纪元的知识已全部掌握。推进纪元或建造融合研究院以解锁新研究。</div>';
+  }
+  html += '<div class="sect-title">已完成研究</div>';
+  const done = RESEARCH.filter(r=>hasRes(r.id));
+  html += done.length ? done.map(r=>'<div class="res-card"style="font-size:12px"><b>'+r.n+'</b> '+upTagFor(r)+' <span style="color:var(--text-secondary)">'+r.d+'</span></div>').join('') :'<div class="empty-hint">尚无。</div>';
+  el.innerHTML = html;
+}
+function renderLogStrip() {
+  document.getElementById("logArea").innerHTML = '<div class="log-box">'+G.log.map(l=>'<p class="'+l.c+'">'+l.t+'</p>').join('')+'</div>';
+}
+function renderAllPanels() {
+  renderRoster(); renderLandsView(); renderResearchView(); renderLogStrip();
+}
+
+function renderAll() {
+  renderResBar();
+  renderBuild();
+  renderAllPanels();
+  renderWorldTabs();
+  const eb = document.getElementById("eraBadge");
+  eb.textContent = ERAS[G.era-1].n;
+  eb.className = "era-badge t"+G.era;
+}
+
+// ---------- 启动 ----------
+(function init(){
+  const loaded = loadGame();
+  CHEAT.on = localStorage.getItem(CHEAT.key)==="1";
+  if(CHEAT.on){ CHEAT.fill(); checkEra(); } // 恢复作弊存档时也跳过门槛
+  else {
+    // 作弊已关闭：把被作弊推高的纪元拉回真实进度（兼容旧存档残留的 T5）
+    const back = typeof G.eraBeforeCheat==="number" ? G.eraBeforeCheat : realEra();
+    if(G.era>back) G.era = back;
+    delete G.eraBeforeCheat;
+  }
+  CHEAT.badge(); CHEAT.listen();
+  renderScrollList();
+  renderAll();
+  if(G.offlineNote){ showToast(""+G.offlineNote,"success"); addLog(""+G.offlineNote); }
+  if(!loaded){
+    addLog("远征队进入灰壤门");
+  }
+  setInterval(tick,1000);
+  window.addEventListener("beforeunload",saveGame);
+  if(document.getElementById("scrollPanel").classList.contains("expanded")){
+    G.unread = 0;
+    document.getElementById("scrollBadge").textContent = 0;
+    renderScrollList();
+  }
+  adjustLeftPad();
+  if(G.time===0 && !G.loreShown.start){
+    // 开局记事（tick 3 也会兜底）
+  }
+})();
+</script>
 </body>
 </html>

@@ -204,14 +204,16 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .hpbar-fill { height:100%; background:var(--green); }
 .hpbar-fill.low { background:var(--red); }
 .hpbar-fill.mid { background:var(--yellow); }
-.eqgrid { display:flex; flex-wrap:wrap; gap:2px; margin-top:4px; }
-.eq { font-size:10px; padding:1px 4px; border:1px solid var(--border); border-radius:3px; background:var(--panel); white-space:nowrap; }
-.eq.q0 { color:#8a8f98; border-color:#c9cdd4; }
-.eq.q1 { color:#2f8f4e; border-color:#8fd0a2; background:#f2fbf4; }
-.eq.q2 { color:#2f6fc0; border-color:#9dc2ef; background:#f2f7fe; }
-.eq.q3 { color:#8b46b8; border-color:#c79ade; background:#faf4fd; }
-.eq.q4 { color:#b8860b; border-color:#e6c453; background:#fffaf0; font-weight:bold; }
-.eq.qx { color:var(--text-muted); border-color:var(--border-light); }
+.eqgrid { display:flex; gap:3px; margin-top:5px; }
+/* 装备槽：只用颜色显示品质，悬停看详情 */
+.eq { width:18px; height:18px; border-radius:4px; border:1px solid; box-sizing:border-box; display:inline-block; cursor:help; transition:transform .1s; }
+.eq:hover { transform:translateY(-2px); }
+.eq.q0 { background:#f6f7f9; border-color:#c9cdd4; }                       /* 白 */
+.eq.q1 { background:#57b87c; border-color:#3a9960; }                       /* 绿 */
+.eq.q2 { background:#5599e0; border-color:#2f6fc0; }                       /* 蓝 */
+.eq.q3 { background:#a86acd; border-color:#8b46b8; }                       /* 紫 */
+.eq.q4 { background:#e3b23c; border-color:#b8860b; box-shadow:0 0 5px rgba(227,178,60,.55); } /* 金 */
+.eq.qx { background:repeating-linear-gradient(45deg,#fafbfc,#fafbfc 3px,#eef1f4 3px,#eef1f4 6px); border-color:#dfe4ea; border-style:dashed; } /* 空槽 */
 
 .btn-small { padding:3px 8px; font-size:12px; background:var(--blue-light); color:var(--blue); border:1px solid var(--blue); border-radius:3px; cursor:pointer; margin-top:3px; transition:.1s; user-select:none; }
 .btn-small:hover:not(:disabled) { background:var(--blue); color:#fff; }
@@ -413,20 +415,20 @@ const EQUIP_Q = [
   {id:"legend",n:"金",mul:6.5,cls:"q4"}
 ];
 const EQUIP_BASE = 8; // 白装基础战力
-const HERO_MAX = 10;
+const HERO_MAX = Infinity; // 英雄登记无上限
 const TROOP_BATCH = [1,10,50];
 function makeEquip(slot, tier, lv){
   const q = EQUIP_Q[tier];
   const slDef = EQUIP_SLOTS.find(x=>x.id===slot) || {n:slot};
-  return { slot, tier, cls:q.cls, power:Math.max(1,Math.round(EQUIP_BASE*q.mul*(1+0.2*(lv-1)))), name:q.n+"·"+slDef.n };
+  return { slot, tier, cls:q.cls, power:Math.max(1,Math.round(EQUIP_BASE*q.mul*(1+0.4*(lv-1)))), name:q.n+"·"+slDef.n };
 }
 function freshEquip(lv){ return EQUIP_SLOTS.map(sl=>makeEquip(sl.id,0,lv)); }
 function equipDrop(lv, depth){
-  if(Math.random() > 0.4) return null; // 六成空手，四成掉装
+  if(Math.random() > 0.6) return null; // 四成空手，六成掉装
   const slot = Math.floor(Math.random()*EQUIP_SLOTS.length);
   const r = Math.random() + depth*0.055;
   let tier = 0;
-  if(r>0.95) tier=4; else if(r>0.78) tier=3; else if(r>0.53) tier=2; else if(r>0.27) tier=1;
+  if(r>0.92) tier=4; else if(r>0.72) tier=3; else if(r>0.45) tier=2; else if(r>0.2) tier=1;
   return makeEquip(EQUIP_SLOTS[slot].id, tier, lv);
 }
 function autoEquip(hero, drop){
@@ -584,15 +586,9 @@ function loadGame() {
     BUILDINGS.forEach(b=>{ if(!G.B[b.id]) G.B[b.id]={count:0,lv:1}; });
     RESEARCH.forEach(r=>{ if(!G.R[r.id]) G.R[r.id]={done:false,prog:0}; });
     while(G.lands.length < LANDS.length) G.lands.push({liberated:false,locked:true,patrol:[]});
-    // V8b 迁移：新增普通士兵数字计数；英雄上限10，超出者折为普通士兵
+    // V8b 迁移：新增普通士兵数字计数；英雄不再有数量上限，仅为老存档补齐装备
     if(!G.troops) G.troops = {};
-    if(Array.isArray(G.soldiers) && G.soldiers.length > HERO_MAX){
-      G.soldiers.forEach(s=>{ if(!s.equip) s.equip = freshEquip(s.lv||1); });
-      G.soldiers.sort((a,b)=>soldierPower(b)-soldierPower(a));
-      const extra = G.soldiers.slice(HERO_MAX);
-      G.soldiers = G.soldiers.slice(0,HERO_MAX);
-      extra.forEach(s=>{ G.troops[s.type] = (G.troops[s.type]||0)+1; });
-    }
+    if(Array.isArray(G.soldiers)) G.soldiers.forEach(s=>{ if(!s.equip) s.equip = freshEquip(s.lv||1); });
     if(!G.storyShown) G.storyShown = {};
     // 离线收益
     if(data.lastSave) {
@@ -764,7 +760,7 @@ function showHelp(){
   "【建造】无槽位限制，点击即完成。约束 = 资源指数上浮 + 科技纪元 + 故土收复。\n"+
   "【升级】建筑不再单独升级。研究对应的工艺科技后，该建筑自动升级，之后新建的同类型建筑也继承该等级。\n"+
   "【纪元】农耕→铁工→电气→融合→核能，每纪元解锁新建筑/新兵种。\n"+
-  "【士兵】两套：①数字编制——按数量成批招募，无名字无等级，战死会减员，进荣誉墙（每5人信念+1/s 永久）；②英雄——上限10位，有名字/等级/经验/血量，造价×3，永不战死（重伤只疗养），自带8装备槽。\n"+
+  "【士兵】两套：①数字编制——按数量成批招募，无名字无等级，战死会减员，进荣誉墙（每5人信念+1/s 永久）；②英雄——登记无上限，有名字/等级/经验/血量，造价×3，永不战死（重伤只疗养），自带8装备槽。\n"+
   "【装备】武器/头盔/护甲/战靴/护手/披风/护符/指环 8 槽，白绿蓝紫金 5 品级（战力×1/1.6/2.5/4/6.5）。英雄巡逻与出征自动打怪，掉落品级越好越靠深处，自动换上更优装备。\n"+
   "【科研】在研究页开展研究，耗时分钟~小时级；融合链素材靠战斗缴获。\n"+
   "【存档】每5秒自动存档，离线最长12小时按效率补算。</div>");
@@ -793,7 +789,7 @@ function payCost(cost){ if(cheatOn()) return; Object.entries(cost).forEach(([k,v
 function soldierPower(s) {
   if(cheatOn()) return 1e9;
   const u = UNITS[s.type];
-  let p = u.power * (1 + 0.15*(s.lv-1));
+  let p = u.power * (1 + 0.35*(s.lv-1));
   if(s.hp < 100) p *= (0.4 + 0.6*s.hp/100);
   if(u.powerUse && !(G.res.power > u.powerUse*3*S)) p *= 0.5; // 缺电减半
   p += heroGearPower(s);
@@ -848,7 +844,7 @@ function patrolBonus() {
   b += (UNITS.hound?UNITS.hound.patrolAura:0)*hn;
   return b;
 }
-function xpNeed(lv){ return Math.floor(50 * Math.pow(1.8,lv-1)); }
+function xpNeed(lv){ return Math.floor(40 * Math.pow(1.45,lv-1)); }
 function gainXp(s,amt) {
   s.xp += amt;
   while(s.xp >= xpNeed(s.lv)) {
@@ -1135,12 +1131,11 @@ function recruitTroop(type, n){
   renderAllPanels();
   flashEl(document.querySelector('[data-recruit-troop="'+type+'"]'));
 }
-// 英雄：个体，上限10，永不战死，带全套白装
+// 英雄：个体，登记无上限，永不战死，带全套白装
 function recruitUnit(type) {
   const u = UNITS[type];
   if(!u) return;
   if(!G.unitUnlocked[type]){ showToast("兵种未解锁","error"); return; }
-  if(G.soldiers.length >= HERO_MAX){ showToast("英雄已满 "+HERO_MAX+" 位","error"); return; }
   const cost = {};
   const lv = (G.B.tent&&G.B.tent.lv>=5)?2:1;
   Object.entries(u.cost).forEach(([k,v])=>{ cost[k]=v*3; }); // 英雄造价 ×3
@@ -1480,7 +1475,7 @@ function renderResBar() {
         (zero?'':'<i class="grow'+(neg?' neg':' run')+'" style="--dur:'+dur+'s"></i>')+'</div>';
     }).join('');
     html += '<div class="resrow" data-k="_troops"><div class="rline"><span class="ricon">兵</span><span class="rname">士兵</span><span class="rval" data-v="troops">'+troopCount()+'</span></div></div>';
-    html += '<div class="resrow" data-k="_heroes"><div class="rline"><span class="ricon">英</span><span class="rname">英雄</span><span class="rval" data-v="heroes">'+G.soldiers.length+'/'+HERO_MAX+'</span></div></div>';
+    html += '<div class="resrow" data-k="_heroes"><div class="rline"><span class="ricon">英</span><span class="rname">英雄</span><span class="rval" data-v="heroes">'+G.soldiers.length+'</span></div></div>';
     bar.innerHTML = html;
     for(const k in _resNodes) delete _resNodes[k];
     shown.forEach(k=>{
@@ -1512,7 +1507,7 @@ function renderResBar() {
     });
   }
   if(_resNodes._troops && _resNodes._troops.val) _resNodes._troops.val.textContent = troopCount();
-  if(_resNodes._heroes && _resNodes._heroes.val) _resNodes._heroes.val.textContent = G.soldiers.length+"/"+HERO_MAX;
+  if(_resNodes._heroes && _resNodes._heroes.val) _resNodes._heroes.val.textContent = ""+G.soldiers.length;
   document.getElementById("gloryVal").textContent = fmtNum(G.glory);
   document.getElementById("gloryRate").textContent = G.gloryIdle ? "+6/s" : ("目标 "+fmtNum(gloryThreshold()));
   document.getElementById("gloryBar").style.width = Math.min(100,G.glory/gloryThreshold()*100)+"%";
@@ -1654,18 +1649,17 @@ function renderRoster() {
   });
   if(troopCount()===0) html += '<div class="empty-hint">士兵是数字编制，成批招募、战死会减员。先招募一批守住营地。</div>';
 
-  // ===== 英雄：个体、上限10、8装备、5品级、不死 =====
-  html += '<div class="sect-title">英雄（'+G.soldiers.length+'/'+HERO_MAX+' · 永不战死，重伤疗养）</div>';
+  // ===== 英雄：个体、无上限、8装备、5品级、不死 =====
+  html += '<div class="sect-title">英雄（'+G.soldiers.length+' 位 · 永不战死，重伤疗养）</div>';
   html += '<div style="font-size:11px;color:var(--text-secondary);margin-bottom:5px">英雄造价 ×3，自带全套白装。巡逻与出征时自动打怪，掉落会换成更优装备。</div>';
   UNIT_ORDER.forEach(uid=>{
     const u = UNITS[uid];
     if(!G.unitUnlocked[uid]) return;
-    const full = G.soldiers.length>=HERO_MAX;
     const c = {}; Object.entries(u.cost).forEach(([k,v])=>c[k]=v*3);
     html += '<div class="unit-card" style="display:flex;justify-content:space-between;align-items:center">'+
       '<div><h4 style="margin:0 0 2px;font-size:13px">英雄·'+u.n+' <span style="color:var(--text-muted);font-weight:normal">战力'+u.power+'</span></h4>'+
       '<div style="font-size:11px;color:var(--text-muted)">'+costStr(c)+'</div></div>'+
-      '<button class="btn-small"'+(full?' disabled':'')+' data-recruit="'+uid+'" data-act="hero" data-id="'+uid+'">'+(full?'已满':'招募')+'</button>'+
+      '<button class="btn-small" data-recruit="'+uid+'" data-act="hero" data-id="'+uid+'">招募</button>'+
       '</div>';
   });
   const sorted = [...G.soldiers].sort((a,b)=>(b.lv-a.lv)||(soldierPower(b)-soldierPower(a)));
@@ -1675,7 +1669,7 @@ function renderRoster() {
     const stateTxt = { idle:"营地巡逻",patrol:"巡逻·"+(s.land>=0?LANDS[s.land].name:""),expedition:"出征中",healing:"疗养中"}[s.state];
     const hpc = s.hp>60?"":s.hp>30?"mid":"low";
     const title = soldierTitle(s);
-    const gear = (s.equip||[]).map(e=>e?'<span class="eq '+e.cls+'" title="'+e.name+' 战力+'+e.power+'">'+e.name+'</span>':'<span class="eq qx">空</span>').join('');
+    const gear = (s.equip||[]).map(e=>e?'<span class="eq '+e.cls+'" title="'+e.name+' 战力+'+e.power+'"></span>':'<span class="eq qx" title="空槽"></span>').join('');
     html += '<div class="soldier-card '+s.state+'"><div class="scard-main">'+
       '<div class="scard-name">'+s.name+(title?' <span style="color:var(--gold);font-size:11px">['+title+']</span>':'')+' <span style="font-size:11px;color:var(--text-muted)">英雄·'+u.n.replace(/^\S+\s/,"")+'</span></div>'+
       '<div class="scard-info">Lv'+s.lv+'· 战力'+Math.round(soldierPower(s))+'（装备+'+heroGearPower(s)+'）· 击杀'+s.kills+'· '+stateTxt+'· XP '+Math.floor(s.xp)+'/'+xpNeed(s.lv)+'</div>'+

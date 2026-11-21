@@ -126,15 +126,22 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .kind-head::after { content:""; flex:1; height:1px; background:var(--border); }
 .kind-head .dot { width:7px; height:7px; border-radius:2px; flex-shrink:0; }
 .build-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(276px,1fr)); gap:10px; width:100%; }
-/* 建筑卡：like 工地铭牌——浅底、细边框、底部类型色条（参考 Epoch-Restart） */
-.build-card { background:var(--panel); border:1px solid #e1e5e9; border-radius:9px 9px 7px 7px; overflow:visible; transition:border-color .15s ease,background .15s ease,box-shadow .15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.04); position:relative; min-width:0; }
-.build-card:before { content:""; position:absolute; left:9px; right:9px; bottom:-1px; height:3px; border-radius:3px 3px 0 0; opacity:.75; background:#cfd9e3; }
-.build-card.k-basic:before { background:#7fa98c; }
-.build-card.k-func:before { background:#6a93b5; }
-.build-card.k-core:before { background:var(--gold); }
-.build-card.k-fused:before { background:#9a7fc0; }
+/* 建筑卡：小建筑造型——斜屋顶 + 立面剪影 + 铭牌 + 基座（参考 Epoch-Restart） */
+.build-card { background:var(--panel); border:1px solid #e1e5e9; border-radius:4px 4px 8px 8px; overflow:visible; transition:border-color .15s ease,background .15s ease,box-shadow .15s ease; box-shadow:0 1px 3px rgba(0,0,0,0.04); position:relative; min-width:0; padding-top:8px; }
+.build-card:before { content:""; position:absolute; left:0; right:0; top:0; height:8px; background:#cfd9e3; clip-path:polygon(0 100%,7% 0,93% 0,100% 100%); opacity:.85; }
+.build-card:after { content:""; position:absolute; left:9px; right:9px; bottom:-1px; height:3px; border-radius:3px 3px 0 0; opacity:.75; background:#cfd9e3; }
+.build-card.k-basic:before,.build-card.k-basic:after { background:#7fa98c; }
+.build-card.k-func:before,.build-card.k-func:after { background:#6a93b5; }
+.build-card.k-core:before,.build-card.k-core:after { background:var(--gold); }
+.build-card.k-fused:before,.build-card.k-fused:after { background:#9a7fc0; }
+.build-card.glory-card:before { display:none; }
+.build-card.glory-card { padding-top:0; }
 /* 平时只显示建筑本身；详细信息悬停浮出 */
-.bface { display:flex; align-items:center; gap:10px; padding:12px 13px 14px; min-height:60px; }
+.bface { display:flex; flex-direction:column; gap:7px; padding:8px 10px 12px; min-width:0; }
+.bart { height:54px; border:1px solid #e8edf2; border-radius:5px 5px 2px 2px; background:linear-gradient(180deg,#fcfdfd,#f2f5f8); display:flex; align-items:flex-end; justify-content:center; position:relative; overflow:hidden; }
+.bart:after { content:""; position:absolute; left:8px; right:8px; bottom:4px; height:1px; background:#d6dfe7; }
+.bart svg { width:64px; height:47px; display:block; position:relative; z-index:1; }
+.bplate { display:flex; align-items:center; justify-content:space-between; gap:6px; min-width:0; padding:0 2px; }
 .bdetail { display:none; position:absolute; left:-1px; top:calc(100% + 3px); min-width:236px; max-width:290px; background:var(--panel); border:1px solid var(--border); border-radius:6px; box-shadow:0 6px 18px rgba(20,45,75,.18); padding:8px 10px; z-index:40; white-space:normal; }
 .build-card:hover, .build-card:focus-within { z-index:41; }
 .build-card:hover .bdetail, .build-card:focus-within .bdetail { display:block; }
@@ -162,7 +169,7 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 .brow-act { margin-top:5px; flex-wrap:wrap; row-gap:4px; }
 .bicon { font-size:16px; font-weight:bold; line-height:1; flex-shrink:0; width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; background:#f0f3f6; color:#5a6a7a; border-radius:7px; border:1px solid #e6ebf0; }
 .build-card.built .bicon, .build-card.glory-card.built .bicon { background:#eaf5ea; color:#5a8f6b; border-color:#d5e7d9; }
-.bname { font-size:16px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:1; }
+.bname { font-size:15px; font-weight:bold; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; min-width:0; flex:1; }
 .bqty { font-size:13px; font-weight:bold; color:#4a6a7a; background:#eaf1f6; border:1px solid #d8e3ec; border-radius:6px; padding:2px 8px; flex-shrink:0; font-variant-numeric:tabular-nums; }
 .build-card.built .bqty { color:#3f7d55; background:#eaf5ea; border-color:#cfe4d4; }
 .badge { font-size:11px; padding:1px 5px; border-radius:3px; margin-left:auto; white-space:nowrap; flex-shrink:0; background:#f0f3f6; color:#6b7a89; border:1px solid #e6ebf0; }
@@ -282,15 +289,56 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 
 /* —— 三类卡片造型差异化 —— */
 /* 研究卡：档案纸/书页风——顶部色条 + 左侧双装订线 + 底部页码感 */
-#viewResearch .tile { border-radius:3px 7px 7px 3px; padding:10px 11px 9px 14px; }
+#viewResearch .tile { border-radius:3px 7px 7px 3px; padding:6px 10px 6px 12px; }
 #viewResearch .tile:before { top:0; bottom:auto; left:0; right:0; width:auto; height:3px; }
-#viewResearch .tile:after { content:""; position:absolute; left:5px; top:6px; bottom:6px; width:1px; border-left:1px dashed var(--tile-c); opacity:.5; }
-#viewResearch .tile-ic { border-radius:50%; }
+#viewResearch .tile:after { content:""; position:absolute; left:5px; top:5px; bottom:5px; width:1px; border-left:1px dashed var(--tile-c); opacity:.5; }
+#viewResearch .tile-ic { border-radius:50%; width:18px; height:18px; font-size:10px; }
+#viewResearch .tile-head { min-height:18px; }
+#viewResearch .tile-desc { min-height:0; margin-top:2px; line-height:1.35; font-size:10.5px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+#viewResearch .tile-meta { margin-top:2px; }
+#viewResearch .tile-foot { margin-top:3px; }
 /* 士兵卡：军牌/盾牌风——右下斜切角 + 双层描边 + 左侧加粗竖条 */
 #viewRoster .tile { border-radius:6px 6px 16px 6px; border:1px solid var(--tile-c); padding:9px 11px 9px 14px; }
 #viewRoster .tile:before { width:4px; border-radius:4px 0 0 4px; }
 #viewRoster .tile-ic { border-radius:4px 4px 8px 4px; }
 #viewRoster .tile-foot { border-top:1px dashed var(--border); padding-top:5px; }
+/* —— 英雄卡：徽章式双层卡，品级配色 + 战力铭牌 + 装备栏 —— */
+.hero-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(236px,1fr)); gap:9px; }
+.hero-card { --hc:#2a7faa; --hc-bg:#e8f2f8; position:relative; min-width:0; border:1px solid #dfe6ed; border-radius:9px; background:var(--panel); box-shadow:var(--shadow); overflow:hidden; transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease; }
+.hero-card:hover { transform:translateY(-2px); box-shadow:0 5px 14px rgba(20,45,75,.12); border-color:var(--hc); }
+.hero-card.h-prod   { --hc:#4a8f5f; --hc-bg:#eaf5ea; }
+.hero-card.h-unlock { --hc:#2a7faa; --hc-bg:#e8f2f8; }
+.hero-card.h-fuse   { --hc:#8b46b8; --hc-bg:#f6effa; }
+.hero-card.h-mixed  { --hc:#b8862b; --hc-bg:#faf6e8; }
+.hero-banner { height:5px; background:linear-gradient(90deg,var(--hc) 0%,var(--hc) 38%,var(--hc-bg) 100%); position:relative; }
+.hero-banner:after { content:""; position:absolute; right:9px; top:-3px; width:11px; height:11px; border:2px solid var(--hc); background:var(--panel); border-radius:50%; }
+.hero-body { padding:8px 11px 10px; }
+.hero-top { display:flex; align-items:center; gap:8px; min-width:0; }
+.hero-sigil { flex:none; width:34px; height:34px; border-radius:50%; background:var(--hc-bg); border:2px solid var(--hc); color:var(--hc); font-size:16px; font-weight:bold; display:flex; align-items:center; justify-content:center; box-shadow:inset 0 0 0 2px #fff; }
+.hero-id { flex:1; min-width:0; }
+.hero-name,.hero-sub { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.hero-name { font-size:14px; font-weight:bold; }
+.hero-sub { font-size:10.5px; color:var(--text-muted); margin-top:1px; }
+.hero-lv { flex:none; text-align:center; background:var(--hc); color:#fff; border-radius:5px; padding:2px 7px; font-size:9px; line-height:1.2; letter-spacing:1px; }
+.hero-lv b { display:block; font-size:15px; letter-spacing:0; font-variant-numeric:tabular-nums; }
+.hero-stats { display:flex; gap:5px; margin-top:8px; }
+.hero-stat { flex:1; min-width:0; background:var(--hc-bg); border:1px solid rgba(255,255,255,.8); border-radius:5px; padding:3px 5px; text-align:center; }
+.hero-stat .v { font-size:14px; font-weight:bold; color:var(--hc); font-variant-numeric:tabular-nums; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.hero-stat .k { font-size:9.5px; color:var(--text-muted); }
+.hero-gear { margin-top:8px; border-top:1px dashed var(--border); padding-top:6px; }
+.hero-gear-label { font-size:10px; color:var(--text-muted); display:flex; justify-content:space-between; gap:4px; margin-bottom:4px; }
+.hero-gear .eqgrid { display:grid; grid-template-columns:repeat(8,1fr); gap:3px; margin-top:0; }
+.hero-gear .eq { width:100%; height:17px; border-radius:3px; }
+.hero-foot { display:flex; justify-content:space-between; gap:6px; margin-top:7px; font-size:10.5px; color:var(--text-secondary); }
+.hero-state { background:var(--hc-bg); color:var(--hc); border-radius:3px; padding:1px 5px; white-space:nowrap; }
+.hero-hp { height:4px; border-radius:2px; background:var(--border-light); margin-top:6px; overflow:hidden; }
+.hero-hp i { display:block; height:100%; }
+.hero-recruit { border-style:dashed; border-color:var(--hc); }
+.hero-recruit .hero-body { text-align:center; padding:12px; }
+.hero-recruit .hero-rsig { width:38px; height:38px; margin:0 auto 6px; border-radius:50%; border:2px dashed var(--hc); color:var(--hc); font-size:20px; font-weight:bold; display:flex; align-items:center; justify-content:center; }
+.hero-recruit .rn { font-size:14px; font-weight:bold; }
+.hero-recruit .rd { font-size:10.5px; color:var(--text-muted); margin:3px 0 6px; line-height:1.4; }
+.hero-recruit .rm { font-size:10.5px; color:var(--hc); font-variant-numeric:tabular-nums; margin-bottom:6px; }
 /* 荣誉墙：纪念馆铭牌——灰底 + 顶部细线 */
 #viewRoster .tile.t-done { border-radius:4px; border-top:2px solid #b9c3cd; }
 
@@ -1626,6 +1674,49 @@ function renderResBar() {
   document.getElementById("gloryRate").textContent = G.gloryIdle ? "+6/s" : ("目标 "+fmtNum(gloryThreshold()));
   document.getElementById("gloryBar").style.width = Math.min(100,G.glory/gloryThreshold()*100)+"%";
 }
+// 建筑卡正面的小立面图：按建筑画剪影，不再用单字简写
+const BUILD_ART_KIND = { altar:"temple",tent:"tent",field:"farm",quarry:"mine",sentry:"tower",spearwk:"forge",watchtw:"tower",academy:"lab",ironmine:"mine",furnace:"forge",nitersh:"forge",foundry:"forge",barracks:"tent",depot:"forge",coalplant:"forge",grid:"tower",arcsm:"forge",chemp:"forge",cement:"forge",polym:"forge",opticsp:"lab",carbonp:"forge",semic:"lab",radio:"tower",facademy:"lab",magnetp:"forge",optfuse:"lab",biofuse:"lab",engfuse:"lab",lighth:"tower",stasis:"lab",resotw:"tower",warmill:"forge",battery:"forge",reactor:"forge",fuelfab:"forge",gmatrix:"temple",gatehub:"temple",beacon:"tower" };
+function buildingArt(b){
+  const col = { core:"#a8894a", basic:"#6d9a7c", func:"#6d90b0", fused:"#8a76b5" }[b.kind] || "#8293a4";
+  const pale = { core:"#f4ecd8", basic:"#e8f2ea", func:"#e9f0f7", fused:"#f1eaf7" }[b.kind] || "#eef2f6";
+  const k = BUILD_ART_KIND[b.id] || (b.kind==="core"?"temple":b.kind==="fused"?"lab":b.kind==="func"?"tower":"forge");
+  let s = "";
+  if(k==="tent"){
+    s = '<path d="M8 43 L32 14 L56 43 Z" fill="'+pale+'" stroke="'+col+'" stroke-width="1.6" stroke-linejoin="round"/>'+
+        '<path d="M26 43 V32 Q32 27 38 32 V43" fill="#fff" stroke="'+col+'" stroke-width="1.2"/>'+
+        '<path d="M32 14 V8" stroke="'+col+'" stroke-width="1.4"/><path d="M32 8 L43 11 L32 14 Z" fill="'+col+'" opacity=".8"/>';
+  } else if(k==="farm"){
+    s = '<path d="M9 32 H55 L58 43 H6 Z" fill="'+pale+'" stroke="'+col+'" stroke-width="1.4"/>'+
+        '<path d="M18 32 V22 M18 26 L12 21 M18 28 L24 23" stroke="'+col+'" stroke-width="1.6" fill="none" stroke-linecap="round"/>'+
+        '<path d="M38 32 V20 M38 25 L32 20 M38 27 L44 22" stroke="'+col+'" stroke-width="1.6" fill="none" stroke-linecap="round"/>'+
+        '<path d="M14 37 H50" stroke="'+col+'" stroke-width="1" opacity=".5"/>';
+  } else if(k==="mine"){
+    s = '<path d="M7 43 L20 25 L33 43 Z M27 43 L40 22 L54 43 Z" fill="'+pale+'" stroke="'+col+'" stroke-width="1.4" stroke-linejoin="round"/>'+
+        '<path d="M17 25 V14 H46 V25" fill="none" stroke="'+col+'" stroke-width="1.6"/>'+
+        '<path d="M17 14 L31 8 L46 14 Z" fill="'+pale+'" stroke="'+col+'" stroke-width="1.4"/>'+
+        '<circle cx="31" cy="19" r="3" fill="#fff" stroke="'+col+'" stroke-width="1.2"/>';
+  } else if(k==="tower"){
+    s = '<path d="M23 43 V22 H41 V43 Z" fill="'+pale+'" stroke="'+col+'" stroke-width="1.5"/>'+
+        '<path d="M19 22 H45 L32 11 Z" fill="'+col+'" opacity=".85"/>'+
+        '<path d="M32 11 V5" stroke="'+col+'" stroke-width="1.4"/><path d="M32 5 L43 8 L32 11 Z" fill="'+col+'"/>'+
+        '<rect x="29" y="29" width="6" height="14" fill="#fff" stroke="'+col+'" stroke-width="1.1"/>'+
+        '<path d="M23 37 H29 M35 37 H41" stroke="'+col+'" stroke-width="1" opacity=".6"/>';
+  } else if(k==="temple"){
+    s = '<path d="M7 20 L32 8 L57 20 Z" fill="'+col+'" opacity=".85"/>'+
+        '<rect x="11" y="20" width="42" height="4" fill="'+pale+'" stroke="'+col+'" stroke-width="1.1"/>'+
+        '<rect x="15" y="24" width="6" height="17" fill="'+pale+'" stroke="'+col+'" stroke-width="1.1"/>'+
+        '<rect x="29" y="24" width="6" height="17" fill="'+pale+'" stroke="'+col+'" stroke-width="1.1"/>'+
+        '<rect x="43" y="24" width="6" height="17" fill="'+pale+'" stroke="'+col+'" stroke-width="1.1"/>'+
+        '<rect x="8" y="41" width="48" height="3" fill="'+col+'" opacity=".75"/>';
+  } else {
+    s = '<path d="M8 43 V27 H43 V43 Z" fill="'+pale+'" stroke="'+col+'" stroke-width="1.5"/>'+
+        '<path d="M43 43 V21 H56 V43 Z" fill="'+pale+'" stroke="'+col+'" stroke-width="1.5"/>'+
+        '<rect x="47" y="9" width="6" height="12" fill="'+col+'" opacity=".75"/>'+
+        '<path d="M13 32 H21 V43 H13 Z M26 32 H34 V43 H26 Z" fill="#fff" stroke="'+col+'" stroke-width="1.1"/>'+
+        '<path d="M8 27 H43" stroke="'+col+'" stroke-width="1"/>';
+  }
+  return '<svg viewBox="0 0 64 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+s+'<rect x="4" y="43" width="56" height="1.5" rx=".8" fill="#ccd6df"/></svg>';
+}
 function renderBuild() {
   if(!G._seenCard) G._seenCard = {};
   const st = id => G.B[id];
@@ -1680,7 +1771,7 @@ function renderBuild() {
         '<div class="bd-foot">'+(unlocked?(canBuild?(ready?'点击建造':'可建造'):'核心唯一'):'前置未完成 · ……')+'</div>';
       const qtyTag = built && !isCore ? '<span class="bqty">×'+s.count+'</span>' : '';
       html += '<div class="'+cardCls+'"'+cardAttrs+'>'+
-        '<div class="bface"><span class="bicon'+(built?' anim-flame':'')+'">'+b.i+'</span><span class="bname">'+dname+'</span>'+qtyTag+'</div>'+
+        '<div class="bface"><div class="bart">'+buildingArt(b)+'</div><div class="bplate"><span class="bname">'+dname+'</span>'+qtyTag+'</div></div>'+
         '<div class="bdetail">'+detail+'</div>'+
         '</div>';
     });
@@ -1776,29 +1867,36 @@ function renderRoster() {
 
   // ===== 英雄：只有「招募英雄」，不区分职业；无上限、8装备、5品级、不死 =====
   html += '<div class="sect-title">英雄（'+G.soldiers.length+' 位 · 永不战死，重伤疗养）</div>';
-  html += '<div class="tile-grid">';
-  html += '<div class="tile t-fuse"><div class="tile-head"><span class="tile-ic">英</span><span class="tile-name">招募英雄</span><span class="tile-tag">无上限</span></div>'+
-    '<div class="tile-desc">有名字、会成长、带 8 件装备。永不战死，重伤只疗养。</div>'+
-    '<div class="tile-meta"><span>造价 ×3</span><span>'+costStr(heroHireCost())+'</span></div>'+
-    '<div class="tile-foot"><button class="btn-small" data-act="hero">招募英雄</button></div></div>';
+  html += '<div class="hero-grid">';
+  html += '<div class="hero-card h-fuse hero-recruit"><div class="hero-banner"></div><div class="hero-body">'+
+    '<div class="hero-rsig">+</div><div class="rn">招募英雄</div>'+
+    '<div class="rd">有名字、会成长、带 8 件装备。永不战死，重伤只疗养。</div>'+
+    '<div class="rm">造价 ×3 · '+costStr(heroHireCost())+' · 无上限</div>'+
+    '<button class="btn-small" data-act="hero">招募英雄</button></div></div>';
   html += '</div>';
   const sorted = [...G.soldiers].sort((a,b)=>(b.lv-a.lv)||(soldierPower(b)-soldierPower(a)));
   if(sorted.length===0) html += '<div class="empty-hint">还没有英雄。英雄不会死，是队伍的核心。</div>';
-  html += '<div class="tile-grid">';
+  html += '<div class="hero-grid">';
   sorted.forEach(s=>{
     const stateTxt = { idle:"营地巡逻",patrol:"巡逻·"+(s.land>=0?LANDS[s.land].name:""),expedition:"出征中",healing:"疗养中"}[s.state];
     const hpc = s.hp>60?"":s.hp>30?"mid":"low";
-    const title = soldierTitle(s);
     const tier = s.lv>=12?"mixed":s.lv>=8?"fuse":s.lv>=5?"unlock":"prod";
     const tierN = { prod:"新兵",unlock:"老练",fuse:"传奇",mixed:"传说" }[tier];
     const gear = (s.equip||[]).map(e=>e?'<span class="eq '+e.cls+'" title="'+e.name+' 战力+'+e.power+'"></span>':'<span class="eq qx" title="空槽"></span>').join('');
-    html += '<div class="tile t-'+tier+' tile-hero">'+
-      '<div class="tile-head"><span class="tile-ic">'+s.name.charAt(0)+'</span><span class="tile-name">'+s.name+'</span><span class="tile-tag">'+tierN+'</span></div>'+
-      '<div class="tile-meta"><span>战力 '+Math.round(soldierPower(s))+'（装备+'+heroGearPower(s)+'）</span><span>Lv'+s.lv+'</span></div>'+
-      '<div class="tile-desc"style="min-height:0">击杀 '+s.kills+' · '+stateTxt+' · XP '+Math.floor(s.xp)+'/'+xpNeed(s.lv)+'</div>'+
-      '<div class="hpbar-bg"><div class="hpbar-fill '+hpc+'"style="width:'+Math.max(0,s.hp)+'%"></div></div>'+
-      '<div class="eqgrid">'+gear+'</div>'+
-      '</div>';
+    html += '<div class="hero-card h-'+tier+'">'+
+      '<div class="hero-banner"></div><div class="hero-body">'+
+        '<div class="hero-top"><span class="hero-sigil">'+s.name.charAt(0)+'</span>'+
+          '<span class="hero-id"><span class="hero-name">'+s.name+'</span><span class="hero-sub">'+tierN+' · 永不战死</span></span>'+
+          '<span class="hero-lv">LV<b>'+s.lv+'</b></span></div>'+
+        '<div class="hero-stats">'+
+          '<div class="hero-stat"><div class="v">'+Math.round(soldierPower(s))+'</div><div class="k">战力</div></div>'+
+          '<div class="hero-stat"><div class="v">+'+heroGearPower(s)+'</div><div class="k">装备</div></div>'+
+          '<div class="hero-stat"><div class="v">'+s.kills+'</div><div class="k">击杀</div></div>'+
+        '</div>'+
+        '<div class="hero-gear"><div class="hero-gear-label"><span>装备 · 8 槽</span><span>自动换装</span></div><div class="eqgrid">'+gear+'</div></div>'+
+        '<div class="hero-foot"><span class="hero-state">'+stateTxt+'</span><span>XP '+Math.floor(s.xp)+'/'+xpNeed(s.lv)+'</span></div>'+
+        '<div class="hero-hp"><i class="hpbar-fill '+hpc+'"style="width:'+Math.max(0,s.hp)+'%"></i></div>'+
+      '</div></div>';
   });
   html += '</div>';
   // ===== 荣誉墙：普通士兵战死记录 =====

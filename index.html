@@ -581,7 +581,7 @@ const EQUIP_Q = [
   {id:"legend",n:"金",mul:6.5,cls:"q4"}
 ];
 const EQUIP_BASE = 8; // 白装基础战力
-const HERO_MAX = Infinity; // 英雄登记无上限
+const HERO_MAX = 10; // 英雄名额上限 10
 const TROOP_BATCH = [1,10,50];
 function makeEquip(slot, tier, lv){
   const q = EQUIP_Q[tier];
@@ -794,7 +794,7 @@ function loadGame() {
     BUILDINGS.forEach(b=>{ if(!G.B[b.id]) G.B[b.id]={count:0,lv:1}; });
     RESEARCH.forEach(r=>{ if(!G.R[r.id]) G.R[r.id]={done:false,prog:0}; });
     while(G.lands.length < LANDS.length) G.lands.push({liberated:false,locked:true,patrol:[]});
-    // V8b 迁移：新增普通士兵数字计数；英雄不再有数量上限，仅为老存档补齐装备
+    // V8b 迁移：新增普通士兵数字计数，并为老存档英雄补齐装备
     if(!G.troops) G.troops = {};
     if(Array.isArray(G.soldiers)) G.soldiers.forEach(s=>{ if(!s.equip) s.equip = freshEquip(s.lv||1); });
     if(!G.storyShown) G.storyShown = {};
@@ -977,7 +977,7 @@ function showHelp(){
   "【建造】无槽位限制，点击即完成。约束 = 资源指数上浮 + 科技纪元 + 故土收复。\n"+
   "【升级】建筑不再单独升级，也不显示等级。研究对应的工艺科技后，建筑会换上新名字，之后新建的同类型建筑也沿用该名字。\n"+
   "【纪元】农耕→铁工→电气→融合→核能，每纪元解锁新建筑/新兵种。\n"+
-  "【士兵】两套：①数字编制——按数量成批招募，无名字无等级，战死会减员，进荣誉墙（每10人信念+1/s 永久）；招募上限由帐篷营地决定：每座营地容纳 10 人，营地升级后 +50%，需建营地才能招兵；②英雄——只有「招募英雄」一种，不分职业，登记无上限，有名字/等级/经验/血量，造价×3，重伤只疗养，自带8装备槽。\n"+
+  "【士兵】两套：①数字编制——按数量成批招募，无名字无等级，战死会减员，进荣誉墙（每10人信念+1/s 永久）；招募上限由帐篷营地决定：每座营地容纳 10 人，营地升级后 +50%，需建营地才能招兵；②英雄——只有「招募英雄」一种，不分职业，最多同时拥有 10 名，有名字/等级/经验/血量，造价×3，重伤只疗养，自带8装备槽。\n"+
   "【信念】异世界的补给：产出有限，士兵、英雄、每座建筑都会持续消耗信念来维持；保持正收益才能养得起大军。\n"+
   "【装备】武器/头盔/护甲/战靴/护手/披风/护符/指环 8 槽，5 档品级以颜色区分（战力×1/1.6/2.5/4/6.5）。英雄巡逻与出征自动打怪，掉落品级越好越靠深处，自动换上更优装备。\n"+
   "【科研】在研究页开展研究，耗时分钟~小时级；融合链素材靠战斗缴获。\n"+
@@ -1425,6 +1425,7 @@ function recruitTroop(type, n){
 }
 // 英雄：只有「招募英雄」一种，不分职业；内部取当前最强已解锁兵种作为基础
 function recruitUnit() {
+  if(G.soldiers.length >= HERO_MAX){ showToast("英雄名额已满（"+HERO_MAX+" 名）","error"); return; }
   const type = heroBaseType(), u = UNITS[type];
   if(!u) return;
   const cost = heroHireCost();
@@ -2002,12 +2003,13 @@ function renderRoster() {
   if(troopCount()===0) html += '<div class="empty-hint">先建帐篷营地，再招募士兵守家。</div>';
 
   // ===== 英雄：只有「招募英雄」，不区分职业 =====
-  html += '<div class="sect-title">英雄 '+G.soldiers.length+'<span class="info-dot" title="有名字、会成长、带 8 件装备、随机等级与战力。重伤只疗养，名额无上限。">i</span></div>';
+  const heroFull = G.soldiers.length >= HERO_MAX;
+  html += '<div class="sect-title">英雄 '+G.soldiers.length+'/'+HERO_MAX+'<span class="info-dot" title="有名字、会成长、带 8 件装备、随机等级与战力。重伤只疗养，最多同时拥有 '+HERO_MAX+' 名。">i</span></div>';
   html += '<div class="hero-grid">';
-  html += '<div class="hero-card h-fuse hero-recruit" title="有名字、会成长、带 8 件装备，等级与战力随机。重伤只疗养，可无限招募。"><div class="hero-banner"></div><div class="hero-body">'+
-    '<div class="hero-rsig">+</div><div class="rn">招募英雄</div>'+
-    '<div class="rm">'+costStr(heroHireCost())+'</div>'+
-    '<button class="btn-small" data-act="hero">招募英雄</button></div></div>';
+  html += '<div class="hero-card h-fuse hero-recruit" title="'+(heroFull?'英雄名额已满 '+HERO_MAX+' 名。':'有名字、会成长、带 8 件装备，等级与战力随机。重伤只疗养，最多同时拥有 '+HERO_MAX+' 名。')+'"><div class="hero-banner"></div><div class="hero-body">'+
+    '<div class="hero-rsig">'+(heroFull?'×':'+')+'</div><div class="rn">招募英雄</div>'+
+    (heroFull?'<div class="rm">名额已满 '+G.soldiers.length+'/'+HERO_MAX+'</div>':'<div class="rm">'+costStr(heroHireCost())+'</div>')+
+    '<button class="btn-small"'+(heroFull?' style="opacity:.45;pointer-events:none"':'')+' data-act="hero">'+(heroFull?'名额已满':'招募英雄')+'</button></div></div>';
   html += '</div>';
   const sorted = [...G.soldiers].sort((a,b)=>(b.lv-a.lv)||(soldierPower(b)-soldierPower(a)));
   html += '<div class="hero-grid">';

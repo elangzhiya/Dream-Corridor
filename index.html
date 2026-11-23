@@ -339,6 +339,8 @@ body { background:var(--bg); color:var(--text); font-family:"Microsoft YaHei","P
 
 /* —— 三类卡片造型差异化 —— */
 /* 研究卡：档案纸/书页风——顶部色条 + 左侧双装订线 + 底部页码感 */
+#viewResearch .tile-grid { grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); }
+.tile-tags { margin-top:4px; }
 #viewResearch .tile { border-radius:3px 7px 7px 3px; padding:6px 10px 6px 12px; }
 #viewResearch .tile:before { top:0; bottom:auto; left:0; right:0; width:auto; height:3px; }
 #viewResearch .tile:after { content:""; position:absolute; left:5px; top:5px; bottom:5px; width:1px; border-left:1px dashed var(--tile-c); opacity:.5; }
@@ -1135,7 +1137,9 @@ function troopArmyPower(){
   if(cheatOn()) return 1e9;
   let p=0;
   Object.entries(G.troops||{}).forEach(([t,n])=>{ const u=UNITS[t]; if(u) p+=u.power*n*typeBattleMul(t); });
-  return p;
+  // 扩圈加成：每征服一处异世界，全军战力 +5%（后期门槛靠征战本身消化）
+  const held = (G.lands||[]).filter(l=>l.liberated).length;
+  return p * (1 + 0.05*held);
 }
 // 普通士兵战死：按比率从各兵种扣减，记荣誉墙
 function killTroops(where, ratio, minOne){
@@ -1452,6 +1456,17 @@ function checkEra() {
 }
 
 // ---------- 研究 ----------
+// 研究资源门槛：点击仍即时完成，但成本按纪元分档抬高；融合素材涨幅温和
+const FUSE_RES = /^(relics|crystal|tissue|superF|glassF|polyF|nuclear|alloy|chip|magnet)$/;
+function researchCost(r){
+  const era = r.era||1;
+  const m = era<=2 ? 2 : era<=4 ? 2.5 : 3;
+  const out = {};
+  Object.entries(r.cost||{}).forEach(([k,v])=>{
+    out[k] = Math.max(1, Math.round(v * (FUSE_RES.test(k)?1.5:m)));
+  });
+  return out;
+}
 function startResearch(id) {
   const r = RESEARCH.find(x=>x.id===id);
   if(!r || G.R[id].done) return;
@@ -1462,8 +1477,9 @@ function startResearch(id) {
   }
   if(r.pre.includes("anyFusion")){ if(!["fade","sync","reson"].some(x=>hasRes(x))){ showToast("前置：任一融合链研究","error"); return; } }
   else for(const p of r.pre){ if(!hasRes(p)){ showToast("前置："+RESEARCH.find(x=>x.id===p).n,"error"); return; } }
-  if(!canAfford(r.cost)){ showToast("研究资源不足","error"); return; }
-  payCost(r.cost);
+  const cost = researchCost(r);
+  if(!canAfford(cost)){ showToast("研究资源不足","error"); return; }
+  payCost(cost);
   finishResearch(id);
   renderAllPanels();
 }
@@ -1726,7 +1742,12 @@ function resolveExpedition() {
     showToast(""+where+"征服！","success");
     loreDone("land"+lid);
     if(LANDS[lid+1]) G.lands[lid+1].locked = false;
-    squad.forEach(s=>{ s.kills+=2; gainXp(s,40+Math.floor(Math.random()*40)); const drop=equipDrop(s.lv,lid); if(drop) autoEquip(s,drop); if(Math.random()<0.25 && G.B.sentry && G.B.sentry.lv<5){ s.hp-=15+Math.random()*25; if(s.hp<30) enterHeal(s); } });
+    squad.forEach(s=>{ s.kills+=2; gainXp(s,40+(lid+1)*15+Math.floor(Math.random()*40)); const drop=equipDrop(s.lv,lid); if(drop) autoEquip(s,drop); if(Math.random()<0.25 && G.B.sentry && G.B.sentry.lv<5){ s.hp-=15+Math.random()*25; if(s.hp<30) enterHeal(s); } });
+    // 远征胜利也有常态战损：越深的地块，士兵损耗越重
+    if(troopCount()>0){
+      const wr = Math.min(0.08, 0.01 + 0.03*Math.min(1,L.power/Math.max(1,pSum)) + lid*0.0005);
+      killTroops(where+"征战中", wr, false);
+    }
     if(lid===0 && !G.unitUnlocked["pioneer"]){ G.unitUnlocked["pioneer"]=true; showToast("解锁兵种：垦荒者","success"); }
     if(lid===4 && !G.unitUnlocked["guardian"]){ G.unitUnlocked["guardian"]=true; showToast("解锁兵种：炉火卫士","success"); }
     checkEra();
@@ -1739,7 +1760,7 @@ function resolveExpedition() {
       if(s.hp<=0){ downHero(s,where+"远征中"); }
       else if(s.hp<30) enterHeal(s);
     });
-    if(troopCount()>0) killTroops(where+"远征中", 0.12+0.13*(L.power/Math.max(1,pSum)));
+    if(troopCount()>0) killTroops(where+"远征中", Math.min(0.4, 0.12+0.13*(L.power/Math.max(1,pSum))));
   }
   renderAll();
 }
@@ -2213,8 +2234,10 @@ function renderResearchView() {
   let html = '<div class="sect-title">研究 '+doneCount+'/'+RESEARCH.length+'<span class="info-dot" title="当前纪元：'+ERAS[G.era-1].n+'。研究即时完成，逐项解锁。">i</span></div>';
   const tile = (r, cls, extra) => {
     const k = researchKind(r);
+    const up = upTagFor(r);
     return '<div class="tile t-'+k+' '+cls+'" title="'+r.d+'">'+
-      '<div class="tile-head"><span class="tile-ic rk-'+k+'"></span><span class="tile-name">'+r.n+'</span>'+upTagFor(r)+'<span class="info-dot">i</span></div>'+
+      '<div class="tile-head"><span class="tile-ic rk-'+k+'"></span><span class="tile-name">'+r.n+'</span><span class="info-dot">i</span></div>'+
+      (up?'<div class="tile-tags">'+up+'</div>':'')+
       extra+
       '</div>';
   };
@@ -2223,7 +2246,7 @@ function renderResearchView() {
   if(avail){
     const afford = canAfford(avail.cost);
     html += '<div class="sect-title">下一项研究</div><div class="tile-grid">';
-    html += tile(avail,'','<div class="tile-meta"><span>即时完成</span><span>'+costStr(avail.cost)+'</span></div>'+
+    html += tile(avail,'','<div class="tile-meta"><span>即时完成</span><span>'+costStr(researchCost(avail))+'</span></div>'+
       '<div class="tile-foot"><button class="btn-small" data-act="research" data-id="'+avail.id+'"'+(afford?'':'disabled')+'>研究</button></div>');
     html += '</div>';
   } else {
